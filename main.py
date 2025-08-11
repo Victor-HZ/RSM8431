@@ -1,5 +1,5 @@
 from datetime import datetime
-import json
+import json, requests, getpass
 
 
 class Property:
@@ -74,3 +74,100 @@ def main():
 
 if  __name__ == "__main__":
     main()
+
+    ###############################################################################################
+    # API Call Code from JSON_Tutorial, to be paraphrased.
+    # API Key is implemented without the requirement of user input. To be removed before submission
+    ###############################################################################################
+
+    # --- Load properties ---
+    with open("properties.json", "r") as f:
+        properties = json.load(f)
+
+    # --- Get API key safely (won't echo in Colab) ---
+    # API_KEY = getpass.getpass("Enter your OpenRouter API key: ").strip()
+    API_KEY = "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"
+    # Pick a DeepSeek model available on OpenRouter.
+    # Common ones include (names can change over time):
+    # - "deepseek/deepseek-chat"
+    # - "deepseek/deepseek-r1"
+    MODEL = "deepseek/deepseek-chat-v3-0324:free"
+
+    URL = "https://openrouter.ai/api/v1/chat/completions"
+    HEADERS = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    SYSTEM_PROMPT = (
+        "You are an assistant for an Airbnb-like vacation property search. "
+        "Given a list of properties (JSON) and a user request, return either: "
+        "(1) a JSON object with `tags` (list of strings) inferred from the request, and "
+        "(2) optionally `property_ids` (list of integers) that might match. "
+        "Only return valid JSON."
+    )
+
+    def llm_search(user_prompt: str, model: str = MODEL) -> dict:
+        """Call OpenRouter and return a parsed dict. On error, return {'error': '...'}."""
+        payload = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {
+                    "role": "user",
+                    "content": (
+                        "PROPERTIES:\n" + json.dumps(properties) +
+                        "\n\nUSER REQUEST:\n" + user_prompt +
+                        "\n\nRespond with JSON: {\"tags\": [...], \"property_ids\": [...]} (property_ids optional)"
+                    ),
+                },
+            ],
+            # Safety/time controls (optional):
+            "temperature": 0.2,
+        }
+        try:
+            r = requests.post(URL, headers=HEADERS, json=payload, timeout=60)
+            # Helpful debug if something goes wrong
+            if r.status_code != 200:
+                return {"error": f"HTTP {r.status_code}", "details": r.text}
+            data = r.json()
+            # Expected shape: data["choices"][0]["message"]["content"]
+            msg = (data.get("choices") or [{}])[0].get("message", {}).get("content")
+            if not msg:
+                return {"error": "No content in response", "details": data}
+            # Try to parse JSON content the model returned
+            try:
+                return json.loads(msg)
+            except json.JSONDecodeError:
+                # If the model included extra text, try to extract JSON loosely
+                # (basic fallback—students can improve later)
+                start = msg.find("{")
+                end = msg.rfind("}")
+                if start != -1 and end != -1 and end > start:
+                    try:
+                        return json.loads(msg[start:end+1])
+                    except json.JSONDecodeError:
+                        return {"error": "Model returned non-JSON content", "raw": msg}
+                return {"error": "Model returned non-JSON content", "raw": msg}
+        except Exception as e:
+            return {"error": "Request failed", "details": str(e)}
+
+    # --- Mini chatbot loop ---
+    print("Vacation Property Bot (type 'exit' to quit)")
+    while True:
+        prompt = input("You: ").strip()
+        if prompt.lower() == "exit":
+            print("Bot: Have a great vacation!")
+            break
+        result = llm_search(prompt)
+        if "error" in result:
+            print("Bot (error):", result["error"])
+            if "details" in result:
+                print("Details:", result["details"])
+            elif "raw" in result:
+                print("Raw output:", result["raw"])
+        else:
+            tags = result.get("tags", [])
+            prop_ids = result.get("property_ids", [])
+            print("Bot: tags =", tags)
+            print("Bot: property_ids =", prop_ids)
