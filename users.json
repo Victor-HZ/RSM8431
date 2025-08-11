@@ -1,0 +1,11 @@
+{
+    "user_id": 101,
+    "name": "Alice",
+    "group_size": 4,
+    "preferred_environment": "lake",
+    "budget_range": [
+        200,
+        300
+    ],
+    "travel_date": "2025-08-11 14:59:57.736168"
+}
