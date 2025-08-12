@@ -61,5 +61,21 @@
             "shower",
             "bus"
         ]
+    },
+    {
+        "property_id": 999,
+        "location": "RSM",
+        "type": "school",
+        "price_per_night": 80000000.0,
+        "features": [
+            "study",
+            "sleep",
+            "eat"
+        ],
+        "tags": [
+            "wifi",
+            "washroom",
+            "shower"
+        ]
     }
 ]

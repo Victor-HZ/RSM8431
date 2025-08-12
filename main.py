@@ -30,7 +30,7 @@ class Property:
         for tag in self.tags:
             tag_list += f"\n\t{tag}"
         return (f"--------------------------------------\n"
-                f"ID: {self.property_id}"
+                f"ID: {self.property_id}\n"
                 f"Location: {self.location}\n"
                 f"Type: {self.type}\n"
                 f"Nightly Price: {self.price_per_night}\n"
