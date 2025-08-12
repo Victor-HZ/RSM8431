@@ -3,29 +3,35 @@ import json, requests, getpass
 
 
 class Property:
-    def __init__(self, property_id: int, location: str, type: str, price_per_night: float, features: list[str], tags: list[str]):
+    def __init__(self, property_id: int, location: str, loc_type: str, price_per_night: float, features_list: list[str], tags_list: list[str]):
         self.property_id = property_id
         self.location = location
-        self.type = type
+        self.type = loc_type
         self.price_per_night = price_per_night
-        self.features = features
-        self.tags = tags
+        if type(features_list) is str:
+            self.features = [features_list]
+        else:
+            self.features = features_list
+        if type(tags_list) is str:
+            self.tags = [tags_list]
+        else:
+            self.tags = tags_list
 
     def __str__(self):
         feature_list = "Features: "
         for feature in self.features:
-            feature_list += f"\t{feature}\n"
+            feature_list += f"\n\t{feature}"
         tag_list = "Tags: "
         for tag in self.tags:
-            tag_list += f"\t{tag}\n"
-        return (f"--------------------------------------"
+            tag_list += f"\n\t{tag}"
+        return (f"--------------------------------------\n"
                 f"ID: {self.property_id}"
-                f"Location: ${self.location}\n"
-                f"Type: ${self.type}\n"
-                f"Nightly Price: ${self.price_per_night}\n"
-                f"Features: ${feature_list}\n"
-                f"Tags: ${tag_list}\n"
-                f"--------------------------------------")
+                f"Location: {self.location}\n"
+                f"Type: {self.type}\n"
+                f"Nightly Price: {self.price_per_night}\n"
+                f"{feature_list}\n"
+                f"{tag_list}\n"
+                f"--------------------------------------\n\n")
 
 class User:
     def __init__(self, user_id: int, name: str, group_size: int, preferred_environment: list[str],
@@ -33,9 +39,25 @@ class User:
         self.user_id = user_id
         self.name = name
         self.group_size = group_size
-        self.preferred_environment = preferred_environment
+        if type(preferred_environment) is str:
+            self.preferred_environment = [preferred_environment]
+        else:
+            self.preferred_environment = preferred_environment
         self.budget_range = budget_range
         self.travel_date = travel_date
+
+    def __str__(self):
+        env_list = "Preferred Environments: "
+        for env in self.preferred_environment:
+            env_list += f"\n\t{env}"
+        return (f"--------------------------------------\n"
+                f"ID: {self.user_id}\n"
+                f"Name: {self.name}\n"
+                f"Group Size: {self.group_size}\n"
+                f"{env_list}\n"
+                f"Budget Range: {self.budget_range[0]} to {self.budget_range[1]}\n"
+                f"Travel Date: {self.travel_date}\n"
+                f"--------------------------------------\n\n")
 
 def load_from_file() -> tuple[list[Property], list[User]]:
     with open("properties.json", "r") as file:
@@ -70,6 +92,8 @@ def write_to_file(property_result: list[Property], user_result: list[User]) -> b
 
 def main():
     property_result, user_result = load_from_file()
+    print(property_result[0])
+    print(user_result[0])
     exit()
 
 if  __name__ == "__main__":
