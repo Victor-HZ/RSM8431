@@ -298,7 +298,7 @@ def cli(properties: list[Property], users: list[User]):
         property_id = int(input("Enter Property ID: "))
         location = input("Enter Location: ")
         loc_type = input("Enter Type: ")
-        price_per_night = int(input("Enter Price for Night: "))
+        price_per_night = float(input("Enter Price for Night: "))
 
         user_input = ''
         features = []
