@@ -19,6 +19,9 @@ class Property:
         else:
             self.tags = tags_list
 
+
+
+
     def __str__(self):
         feature_list = "Features: "
         for feature in self.features:
@@ -34,7 +37,6 @@ class Property:
                 f"{feature_list}\n"
                 f"{tag_list}\n"
                 f"--------------------------------------\n\n")
-
     def get_dict(self):
         return {
             "property_id": self.property_id,
