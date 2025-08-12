@@ -1,5 +1,6 @@
 from datetime import datetime
 import json, requests, getpass
+import numpy as np
 
 
 class Property:
@@ -164,15 +165,15 @@ class User:
         return self.group_size
 
     def match_property_by_env(self, properties: list[Property], environment: list[str]):
-        #TODO
+        # TODO
         return
 
     def match_property_by_tags(self, properties: list[Property], loc_tags: list[str]):
-        #TODO
+        # TODO
         return
 
     def score_property(self, property: Property):
-        #TODO
+        # TODO
         return
 
 
@@ -212,164 +213,29 @@ def write_to_file(properties: list[Property], users: list[User]) -> bool:
         return False
 
 
-def create_user():
-    #TODO implement try except to catch invalid input for int
-    user_id = int(input("Enter User ID: "))
-    name = input("Enter User name: ")
-    group_size = int(input("Enter Group Size: "))
-
-    user_input = ''
-    preferred_environment = []
-    while user_input != "F":
-        user_input = input("Enter Preferred Environment, F to finish: ")
-        if user_input != "F":
-            preferred_environment.append(user_input)
-
-    budget_range_lower = input("Enter Lower Budget Range: ")
-    budget_range_upper = input("Enter Upper Budget Range: ")
-    budget_range = (int(budget_range_lower), int(budget_range_upper))
-    travel_date = input("Enter Travel Date (YYYY-MM-DD HH:MM:SS.FF), N for now: ")
-    if travel_date == "N":
-        travel_date = datetime.now()
-    else:
-        travel_date = datetime.strptime(travel_date, "%Y-%m-%d %H:%M:%S.%f")
-
-    return User(user_id, name, group_size, preferred_environment, budget_range, travel_date)
+def search_user():
+    # TODO
+    return
 
 
-def create_property():
-    property_id = int(input("Enter Property ID: "))
-    location = input("Enter Location: ")
-    loc_type = input("Enter Type: ")
-    price_per_night = int(input("Enter Price for Night: "))
-
-    user_input = ''
-    features = []
-    while user_input != "F":
-        user_input = input("Enter Features, F to finish: ")
-        if user_input != "F":
-            features.append(user_input)
-
-    user_input = ''
-    loc_tags = []
-    while user_input != "F":
-        user_input = input("Enter Tags, F to finish: ")
-        if user_input != "F":
-            loc_tags.append(user_input)
-
-    return Property(property_id, location, loc_type, price_per_night, features, loc_tags)
+def search_property():
+    # TODO
+    return
 
 
-def view_property(properties: list[Property]):
-    for prop in properties:
-        print(prop)
+def filter_user():
+    # TODO
+    return
 
 
-def view_user(users: list[User]):
-    for user in users:
-        print(user)
+def filter_property():
+    # TODO
+    return
 
 
-def edit_property(properties: list[Property]):
-    id_list = [prop.get_id() for prop in properties]
-    print("Property IDs: ", id_list)
-    user_input = input("Enter Property to be Edited, F to dismiss: ")
-    if user_input == "F":
-        return properties
-    target_id = int(user_input)
-    print(f"Selected property is:\n"
-          f"{properties[target_id]}\n"
-          f"What you want to change?\n"
-          f"1. Property ID\t 2. Location\n"
-          f"3. Type       \t 4. Price per Night\n"
-          f"5. Features   \t 6. Tags\n"
-          f"7. Dismiss\n")
-    user_input = input("Enter your choice, F to dismiss: ")
-    match user_input:
-        case "1":
-            user_input = input("Enter New Property ID: ")
-            properties[target_id].update_id(int(user_input))
-        case "2":
-            user_input = input("Enter New Location: ")
-            properties[target_id].update_location(user_input)
-        case "3":
-            user_input = input("Enter New Type: ")
-            properties[target_id].update_type(user_input)
-        case "4":
-            user_input = input("Enter New Price: ")
-            properties[target_id].update_price_per_night(float(user_input))
-        case "5":
-            user_input = ''
-            features = []
-            while user_input != "F":
-                user_input = input("Enter Features, F to finish: ")
-                if user_input != "F":
-                    features.append(user_input)
-            properties[target_id].update_features(features)
-        case "6":
-            user_input = ''
-            loc_tags = []
-            while user_input != "F":
-                user_input = input("Enter Tags, F to finish: ")
-                if user_input != "F":
-                    loc_tags.append(user_input)
-            properties[target_id].update_tags(loc_tags)
-        case "7":
-            return properties
-    return properties
-
-    return properties
-
-
-def edit_user(users: list[User]):
-    id_list = [user.get_id() for user in users]
-    print("User IDs: ", id_list)
-    user_input = input("Enter User to be Edited, F to dismiss: ")
-    if user_input == "F":
-        return users
-    target_id = int(user_input)
-    print(f"Selected user is:\n"
-          f"{users[target_id]}\n"
-          f"What you want to change?\n"
-          f"1. User ID     \t 2. Name\n"
-          f"3. Group Size  \t 4. Budget\n"
-          f"5. Travel Date \t 6. Preferred Environment\n"
-          f"7. Dismiss\n")
-    user_input = input("Enter your choice, F to dismiss: ")
-    match user_input:
-        case "1":
-            user_input = input("Enter New User ID: ")
-            users[target_id].update_id(int(user_input))
-        case "2":
-            user_input = input("Enter New Name: ")
-            users[target_id].update_name(user_input)
-        case "3":
-            user_input = input("Enter New Group Size: ")
-            users[target_id].update_group_size(int(user_input))
-        case "4":
-            budget_range_lower = input("Enter New Lower Budget Range: ")
-            budget_range_upper = input("Enter New Upper Budget Range: ")
-            users[target_id].update_budget_range((int(budget_range_lower), int(budget_range_upper)))
-        case "5":
-            travel_date = input("Enter New Travel Date (YYYY-MM-DD HH:MM:SS.FF), N for now: ")
-            if travel_date == "N":
-                travel_date = datetime.now()
-            else:
-                travel_date = datetime.strptime(travel_date, "%Y-%m-%d %H:%M:%S.%f")
-            users[target_id].update_travel_date(travel_date)
-        case "6":
-            user_input = ''
-            preferred_environment = []
-            while user_input != "F":
-                user_input = input("Enter Preferred Environment, F to finish: ")
-                if user_input != "F":
-                    preferred_environment.append(user_input)
-            users[target_id].update_preferred_environment(preferred_environment)
-        case "7":
-            return users
-    return users
-
-    return users
+def map_visualization():
+    # TODO
+    return
 
 
 def get_recommendation():
@@ -381,10 +247,184 @@ def llm_summary():
 
 
 def gui(properties: list[Property], users: list[User]):
-    #TODO
+    # TODO
+    def create_user():
+        return
+
+    def create_property():
+        return
+
+    def view_property():
+        return
+
+    def view_user():
+        return
+
+    def edit_property():
+        return
+
+    def edit_user():
+        return
+
     return
 
+
 def cli(properties: list[Property], users: list[User]):
+    def create_user():
+        # TODO implement try except to catch invalid input for int
+        user_id = int(input("Enter User ID: "))
+        name = input("Enter User name: ")
+        group_size = int(input("Enter Group Size: "))
+
+        user_input = ''
+        preferred_environment = []
+        while user_input != "F":
+            user_input = input("Enter Preferred Environment, F to finish: ")
+            if user_input != "F":
+                preferred_environment.append(user_input)
+
+        budget_range_lower = input("Enter Lower Budget Range: ")
+        budget_range_upper = input("Enter Upper Budget Range: ")
+        budget_range = (int(budget_range_lower), int(budget_range_upper))
+        travel_date = input("Enter Travel Date (YYYY-MM-DD HH:MM:SS.FF), N for now: ")
+        if travel_date == "N":
+            travel_date = datetime.now()
+        else:
+            travel_date = datetime.strptime(travel_date, "%Y-%m-%d %H:%M:%S.%f")
+
+        return User(user_id, name, group_size, preferred_environment, budget_range, travel_date)
+
+    def create_property():
+        property_id = int(input("Enter Property ID: "))
+        location = input("Enter Location: ")
+        loc_type = input("Enter Type: ")
+        price_per_night = int(input("Enter Price for Night: "))
+
+        user_input = ''
+        features = []
+        while user_input != "F":
+            user_input = input("Enter Features, F to finish: ")
+            if user_input != "F":
+                features.append(user_input)
+
+        user_input = ''
+        loc_tags = []
+        while user_input != "F":
+            user_input = input("Enter Tags, F to finish: ")
+            if user_input != "F":
+                loc_tags.append(user_input)
+
+        return Property(property_id, location, loc_type, price_per_night, features, loc_tags)
+
+    def view_property(properties: list[Property]):
+        for prop in properties:
+            print(prop)
+
+    def view_user(users: list[User]):
+        for user in users:
+            print(user)
+
+    def edit_property(properties: list[Property]):
+        id_list = [prop.get_id() for prop in properties]
+        print("Property IDs: ", id_list)
+        user_input = input("Enter Property to be Edited, F to dismiss: ")
+        if user_input == "F":
+            return properties
+        target_id = int(user_input)
+        print(f"Selected property is:\n"
+              f"{properties[target_id]}\n"
+              f"What you want to change?\n"
+              f"1. Property ID\t 2. Location\n"
+              f"3. Type       \t 4. Price per Night\n"
+              f"5. Features   \t 6. Tags\n"
+              f"7. Dismiss\n")
+        user_input = input("Enter your choice, F to dismiss: ")
+        match user_input:
+            case "1":
+                user_input = input("Enter New Property ID: ")
+                properties[target_id].update_id(int(user_input))
+            case "2":
+                user_input = input("Enter New Location: ")
+                properties[target_id].update_location(user_input)
+            case "3":
+                user_input = input("Enter New Type: ")
+                properties[target_id].update_type(user_input)
+            case "4":
+                user_input = input("Enter New Price: ")
+                properties[target_id].update_price_per_night(float(user_input))
+            case "5":
+                user_input = ''
+                features = []
+                while user_input != "F":
+                    user_input = input("Enter Features, F to finish: ")
+                    if user_input != "F":
+                        features.append(user_input)
+                properties[target_id].update_features(features)
+            case "6":
+                user_input = ''
+                loc_tags = []
+                while user_input != "F":
+                    user_input = input("Enter Tags, F to finish: ")
+                    if user_input != "F":
+                        loc_tags.append(user_input)
+                properties[target_id].update_tags(loc_tags)
+            case "7":
+                return properties
+        return properties
+
+        return properties
+
+    def edit_user(users: list[User]):
+        id_list = [user.get_id() for user in users]
+        print("User IDs: ", id_list)
+        user_input = input("Enter User to be Edited, F to dismiss: ")
+        if user_input == "F":
+            return users
+        target_id = int(user_input)
+        print(f"Selected user is:\n"
+              f"{users[target_id]}\n"
+              f"What you want to change?\n"
+              f"1. User ID     \t 2. Name\n"
+              f"3. Group Size  \t 4. Budget\n"
+              f"5. Travel Date \t 6. Preferred Environment\n"
+              f"7. Dismiss\n")
+        user_input = input("Enter your choice, F to dismiss: ")
+        match user_input:
+            case "1":
+                user_input = input("Enter New User ID: ")
+                users[target_id].update_id(int(user_input))
+            case "2":
+                user_input = input("Enter New Name: ")
+                users[target_id].update_name(user_input)
+            case "3":
+                user_input = input("Enter New Group Size: ")
+                users[target_id].update_group_size(int(user_input))
+            case "4":
+                budget_range_lower = input("Enter New Lower Budget Range: ")
+                budget_range_upper = input("Enter New Upper Budget Range: ")
+                users[target_id].update_budget_range((int(budget_range_lower), int(budget_range_upper)))
+            case "5":
+                travel_date = input("Enter New Travel Date (YYYY-MM-DD HH:MM:SS.FF), N for now: ")
+                if travel_date == "N":
+                    travel_date = datetime.now()
+                else:
+                    travel_date = datetime.strptime(travel_date, "%Y-%m-%d %H:%M:%S.%f")
+                users[target_id].update_travel_date(travel_date)
+            case "6":
+                user_input = ''
+                preferred_environment = []
+                while user_input != "F":
+                    user_input = input("Enter Preferred Environment, F to finish: ")
+                    if user_input != "F":
+                        preferred_environment.append(user_input)
+                users[target_id].update_preferred_environment(preferred_environment)
+            case "7":
+                return users
+        return users
+
+        return users
+
+    # Main CLI Loop
     while True:
         print(f"-------------------- Main Menu --------------------\n"
               f"1. Create a new user\t 2. Create a new property\n"
@@ -419,31 +459,6 @@ def cli(properties: list[Property], users: list[User]):
                 exit()
 
 
-def search_user():
-    #TODO
-    return
-
-
-def search_property():
-    #TODO
-    return
-
-
-def filter_user():
-    #TODO
-    return
-
-
-def filter_property():
-    #TODO
-    return
-
-
-def map_visualization():
-    #TODO
-    return
-
-
 def main():
     # Main loop for CLI
     properties = []
@@ -459,7 +474,6 @@ def main():
             case "2":
                 gui(properties, users)
         print("Invalid input")
-
 
 
 if __name__ == "__main__":
