@@ -3,7 +3,8 @@ import json, requests, getpass
 
 
 class Property:
-    def __init__(self, property_id: int, location: str, loc_type: str, price_per_night: float, features_list: list[str], tags_list: list[str]):
+    def __init__(self, property_id: int, location: str, loc_type: str, price_per_night: float, features_list: list[str],
+                 tags_list: list[str]):
         self.property_id = property_id
         self.location = location
         self.type = loc_type
@@ -32,35 +33,57 @@ class Property:
                 f"{feature_list}\n"
                 f"{tag_list}\n"
                 f"--------------------------------------\n\n")
+
     def update_id(self, property_id: int):
         self.property_id = property_id
+
     def update_type(self, property_type: str):
         self.type = property_type
+
     def update_price_per_night(self, price_per_night: float):
         self.price_per_night = price_per_night
+
     def update_location(self, location: str):
         self.location = location
+
     def update_tags(self, tags: list[str]):
         self.tags = tags
+
     def update_features(self, features: list[str]):
         self.features = features
 
     def get_id(self):
         return self.property_id
+
     def get_type(self):
         return self.type
+
     def get_price_per_night(self):
         return self.price_per_night
+
     def get_location(self):
         return self.location
+
     def get_tags(self):
         return self.tags
+
     def get_features(self):
         return self.features
+
 
 class User:
     def __init__(self, user_id: int, name: str, group_size: int, preferred_environment: list[str],
                  budget_range: tuple[int, int], travel_date: datetime = datetime.now()):
+        """
+        Instantiate new user
+
+        :param user_id: User ID
+        :param name: Username
+        :param group_size: Group Size
+        :param preferred_environment: Preferred Environment
+        :param budget_range: Budget Range
+        :param travel_date: Travel Date
+        """
         self.user_id = user_id
         self.name = name
         self.group_size = group_size
@@ -83,31 +106,54 @@ class User:
                 f"Budget Range: {self.budget_range[0]} to {self.budget_range[1]}\n"
                 f"Travel Date: {self.travel_date}\n"
                 f"--------------------------------------\n\n")
+
     def update_name(self, new_name: str):
         self.name = new_name
+
     def update_id(self, new_id: int):
         self.user_id = new_id
+
     def update_budget_range(self, budget_range: tuple[int, int]):
         self.budget_range = budget_range
+
     def update_travel_date(self, travel_date: datetime):
         self.travel_date = travel_date
+
     def update_group_size(self, group_size: int):
         self.group_size = group_size
+
     def update_preferred_environment(self, preferred_environment: list[str]):
         self.preferred_environment = preferred_environment
 
     def get_id(self):
         return self.user_id
+
     def get_name(self):
         return self.name
+
     def get_preferred_environment(self):
         return self.preferred_environment
+
     def get_budget_range(self):
         return self.budget_range
+
     def get_travel_date(self):
         return self.travel_date
+
     def get_group_size(self):
         return self.group_size
+
+    def match_property_by_env(self, properties: list[Property], environment: list[str]):
+        #TODO
+        return
+
+    def match_property_by_tags(self, properties: list[Property], loc_tags: list[str]):
+        #TODO
+        return
+
+    def score_property(self, property: Property):
+        #TODO
+        return
 
 
 def load_from_file() -> tuple[list[Property], list[User]]:
@@ -115,10 +161,11 @@ def load_from_file() -> tuple[list[Property], list[User]]:
         temp_properties = json.load(file)
     if type(temp_properties) == list:
         property_result = [Property(prop['property_id'], prop['location'], prop['type'], prop['price_per_night'],
-                                    prop['features'],prop['tags']) for prop in temp_properties]
+                                    prop['features'], prop['tags']) for prop in temp_properties]
     else:
-        property_result = [Property[temp_properties['property_id'], temp_properties['location'], temp_properties['type'],
-                                    temp_properties['price_per_night'],temp_properties['features'],temp_properties['tags']]]
+        property_result = [
+            Property[temp_properties['property_id'], temp_properties['location'], temp_properties['type'],
+            temp_properties['price_per_night'], temp_properties['features'], temp_properties['tags']]]
     with open("users.json", "r") as file:
         temp_users = json.load(file)
     if type(temp_users) == list:
@@ -131,6 +178,7 @@ def load_from_file() -> tuple[list[Property], list[User]]:
                             datetime.strptime(temp_users['travel_date'], "%Y-%m-%d %H:%M:%S.%f"))]
     return property_result, user_result
 
+
 def write_to_file(property_result: list[Property], user_result: list[User]) -> bool:
     try:
         with open("properties.json", "w") as file:
@@ -140,6 +188,7 @@ def write_to_file(property_result: list[Property], user_result: list[User]) -> b
         return True
     except FileNotFoundError:
         return False
+
 
 def create_user():
     #TODO implement try except to catch invalid input for int
@@ -165,6 +214,7 @@ def create_user():
 
     return User(user_id, name, group_size, preferred_environment, budget_range, travel_date)
 
+
 def create_property():
     property_id = int(input("Enter Property ID: "))
     location = input("Enter Location: ")
@@ -187,13 +237,16 @@ def create_property():
 
     return Property(property_id, location, loc_type, price_per_night, features, loc_tags)
 
+
 def view_property(properties: list[Property]):
     for prop in properties:
         print(prop)
 
+
 def view_user(users: list[User]):
     for user in users:
         print(user)
+
 
 def edit_property(properties: list[Property]):
     id_list = [prop.get_id() for prop in properties]
@@ -245,6 +298,7 @@ def edit_property(properties: list[Property]):
 
     return properties
 
+
 def edit_user(users: list[User]):
     id_list = [user.get_id() for user in users]
     print("User IDs: ", id_list)
@@ -293,14 +347,46 @@ def edit_user(users: list[User]):
             return users
     return users
 
-
     return users
+
 
 def get_recommendation():
     return
 
+
 def llm_summary():
     return
+
+
+def gui():
+    #TODO
+    return
+
+
+def search_user():
+    #TODO
+    return
+
+
+def search_property():
+    #TODO
+    return
+
+
+def filter_user():
+    #TODO
+    return
+
+
+def filter_property():
+    #TODO
+    return
+
+
+def map_visualization():
+    #TODO
+    return
+
 
 def main():
     # Main loop for CLI
@@ -340,8 +426,7 @@ def main():
                 exit()
 
 
-
-if  __name__ == "__main__":
+if __name__ == "__main__":
     main()
 
 #
