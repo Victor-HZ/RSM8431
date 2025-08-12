@@ -34,6 +34,16 @@ class Property:
                 f"{tag_list}\n"
                 f"--------------------------------------\n\n")
 
+    def get_dict(self):
+        return {
+            "property_id": self.property_id,
+            "location": self.location,
+            "type": self.type,
+            "price_per_night": self.price_per_night,
+            "features": self.features,
+            "tags": self.tags,
+        }
+
     def update_id(self, property_id: int):
         self.property_id = property_id
 
@@ -107,6 +117,16 @@ class User:
                 f"Travel Date: {self.travel_date}\n"
                 f"--------------------------------------\n\n")
 
+    def get_dict(self):
+        return {
+            "user_id": self.user_id,
+            "name": self.name,
+            "group_size": self.group_size,
+            "preferred_environment": self.preferred_environment,
+            "budget_range": self.budget_range,
+            "travel_date": self.travel_date,
+        }
+
     def update_name(self, new_name: str):
         self.name = new_name
 
@@ -179,12 +199,14 @@ def load_from_file() -> tuple[list[Property], list[User]]:
     return property_result, user_result
 
 
-def write_to_file(property_result: list[Property], user_result: list[User]) -> bool:
+def write_to_file(properties: list[Property], users: list[User]) -> bool:
     try:
+        properties_list = [property.get_dict() for property in properties]
+        users_list = [user.get_dict() for user in users]
         with open("properties.json", "w") as file:
-            json.dump(property_result, file)
+            json.dump(properties_list, file, default=str, indent=4)
         with open("users.json", "w") as file:
-            json.dump(user_result, file)
+            json.dump(users_list, file, default=str, indent=4)
         return True
     except FileNotFoundError:
         return False
@@ -358,40 +380,11 @@ def llm_summary():
     return
 
 
-def gui():
+def gui(properties: list[Property], users: list[User]):
     #TODO
     return
 
-
-def search_user():
-    #TODO
-    return
-
-
-def search_property():
-    #TODO
-    return
-
-
-def filter_user():
-    #TODO
-    return
-
-
-def filter_property():
-    #TODO
-    return
-
-
-def map_visualization():
-    #TODO
-    return
-
-
-def main():
-    # Main loop for CLI
-    properties = []
-    users = []
+def cli(properties: list[Property], users: list[User]):
     while True:
         print(f"-------------------- Main Menu --------------------\n"
               f"1. Create a new user\t 2. Create a new property\n"
@@ -424,6 +417,49 @@ def main():
                 llm_summary()
             case "11":
                 exit()
+
+
+def search_user():
+    #TODO
+    return
+
+
+def search_property():
+    #TODO
+    return
+
+
+def filter_user():
+    #TODO
+    return
+
+
+def filter_property():
+    #TODO
+    return
+
+
+def map_visualization():
+    #TODO
+    return
+
+
+def main():
+    # Main loop for CLI
+    properties = []
+    users = []
+    while True:
+        print(f"------------ Display Menu ------------ \n"
+              f"1. CLI \n"
+              f"2. GUI \n")
+        user_input = input("Enter your choice: ")
+        match user_input:
+            case "1":
+                cli(properties, users)
+            case "2":
+                gui(properties, users)
+        print("Invalid input")
+
 
 
 if __name__ == "__main__":
