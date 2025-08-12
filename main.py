@@ -185,8 +185,8 @@ def load_from_file() -> tuple[list[Property], list[User]]:
                                     prop['features'], prop['tags']) for prop in temp_properties]
     else:
         property_result = [
-            Property[temp_properties['property_id'], temp_properties['location'], temp_properties['type'],
-            temp_properties['price_per_night'], temp_properties['features'], temp_properties['tags']]]
+            Property(temp_properties['property_id'], temp_properties['location'], temp_properties['type'],
+            temp_properties['price_per_night'], temp_properties['features'], temp_properties['tags'])]
     with open("users.json", "r") as file:
         temp_users = json.load(file)
     if type(temp_users) == list:
