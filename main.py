@@ -330,7 +330,7 @@ def cli(properties: list[Property], users: list[User]):
         user_input = input("Enter Property to be Edited, F to dismiss: ")
         if user_input == "F":
             return properties
-        target_id = int(user_input)
+        target_id = id_list.index(int(user_input))
         print(f"Selected property is:\n"
               f"{properties[target_id]}\n"
               f"What you want to change?\n"
@@ -380,7 +380,7 @@ def cli(properties: list[Property], users: list[User]):
         user_input = input("Enter User to be Edited, F to dismiss: ")
         if user_input == "F":
             return users
-        target_id = int(user_input)
+        target_id = id_list.index(int(user_input))
         print(f"Selected user is:\n"
               f"{users[target_id]}\n"
               f"What you want to change?\n"
