@@ -1,11 +1,31 @@
-{
-    "user_id": 101,
-    "name": "Alice",
-    "group_size": 4,
-    "preferred_environment": "lake",
-    "budget_range": [
-        200,
-        300
-    ],
-    "travel_date": "2025-08-11 14:59:57.736168"
-}
+[
+    {
+        "user_id": 101,
+        "name": "Alice",
+        "group_size": 4,
+        "preferred_environment": [
+            "lake"
+        ],
+        "budget_range": [
+            200,
+            300
+        ],
+        "travel_date": "2025-08-11 14:59:57.736168"
+    },
+    {
+        "user_id": 100,
+        "name": "Vic",
+        "group_size": 9,
+        "preferred_environment": [
+            "lake",
+            "ocean",
+            "mountain",
+            "desert"
+        ],
+        "budget_range": [
+            10,
+            9888
+        ],
+        "travel_date": "2025-08-11 23:37:21.008766"
+    }
+]
