@@ -19,9 +19,6 @@ class Property:
         else:
             self.tags = tags_list
 
-
-
-
     def __str__(self):
         feature_list = "Features: "
         for feature in self.features:
@@ -37,6 +34,7 @@ class Property:
                 f"{feature_list}\n"
                 f"{tag_list}\n"
                 f"--------------------------------------\n\n")
+
     def get_dict(self):
         return {
             "property_id": self.property_id,
@@ -166,13 +164,8 @@ class User:
     def get_group_size(self):
         return self.group_size
 
-    def match_property_by_env(self, properties: list[Property], environment: list[str]):
-        # TODO
-        return
-
-    def match_property_by_tags(self, properties: list[Property], loc_tags: list[str]):
-        # TODO
-        return
+    def match_property_by_feature(self, properties: list[Property]):
+       return
 
     def score_property(self, property: Property):
         # TODO
@@ -188,7 +181,7 @@ def load_from_file() -> tuple[list[Property], list[User]]:
     else:
         property_result = [
             Property(temp_properties['property_id'], temp_properties['location'], temp_properties['type'],
-            temp_properties['price_per_night'], temp_properties['features'], temp_properties['tags'])]
+                     temp_properties['price_per_night'], temp_properties['features'], temp_properties['tags'])]
     with open("users.json", "r") as file:
         temp_users = json.load(file)
     if type(temp_users) == list:
@@ -374,8 +367,6 @@ def cli(properties: list[Property], users: list[User]):
                 return properties
         return properties
 
-        return properties
-
     def edit_user(users: list[User]):
         id_list = [user.get_id() for user in users]
         print("User IDs: ", id_list)
@@ -480,6 +471,75 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+def get_api():
+    return "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"
+    # return getpass.getpass(prompt="Enter API Key: ")
+
+class Llm:
+    def __init__(self, api_key: str, model: str, url: str):
+        self.api_key = api_key
+        self.model = model
+        self.url = url
+        self.headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+
+    def update_api_key(self, api_key: str):
+        self.api_key = api_key
+        self.header = {
+            "Authorization": f"Bearer {api_key}",
+        }
+
+    def update_model(self, model: str):
+        self.model = model
+
+    def update_url(self, url: str):
+        self.url = url
+
+    def llm_inquiry(self, system_prompt, user_prompt):
+        payload = {
+            "model": self.model,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": system_prompt,
+                },
+                {
+                    "role": "user",
+                    "content": user_prompt,
+                },
+            ],
+            "temperature": 0.2
+        }
+
+        try:
+            r = requests.post(self.url, headers=self.header, json=payload, timeout=60)
+            # Helpful debug if something goes wrong
+            if r.status_code != 200:
+                return {"error": f"HTTP {r.status_code}", "details": r.text}
+            data = r.json()
+            # Expected shape: data["choices"][0]["message"]["content"]
+            msg = (data.get("choices") or [{}])[0].get("message", {}).get("content")
+            if not msg:
+                return {"error": "No content in response", "details": data}
+            # Try to parse JSON content the model returned
+            try:
+                return json.loads(msg)
+            except json.JSONDecodeError:
+                # If the model included extra text, try to extract JSON loosely
+                # (basic fallback—students can improve later)
+                start = msg.find("{")
+                end = msg.rfind("}")
+                if start != -1 and end != -1 and end > start:
+                    try:
+                        return json.loads(msg[start:end+1])
+                    except json.JSONDecodeError:
+                        return {"error": "Model returned non-JSON content", "raw": msg}
+                return {"error": "Model returned non-JSON content", "raw": msg}
+        except Exception as e:
+            return {"error": "Request failed", "details": str(e)}
 
 #
 # ###############################################################################################
