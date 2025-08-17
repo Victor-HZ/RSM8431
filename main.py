@@ -214,39 +214,39 @@ class User:
         # TODO
         return
 
-#    def match_property_by_feature(self, properties: list[Property]):
-#        matches = []
-#        for prop in properties:
-#            for pref in self.preferred_environment:
-#                if pref in [prop.location, prop.type] or \
-#                    pref in prop.features or \
-#                    pref in prop.tags:
-#                    matches.append(prop)
-#                    break
-#        return pd.DataFrame(matches)
-#
-#    def score_property(self, property: Property, w_price=0.6, w_features=0.4):
-#        matches = self.match_property_by_feature(Property)
-#
-#        # Price
-#        price_match = np.array(np.clip((self.budget_range[1] - matches["price_per_night"]) / max(self.budget_range[1], 0.001), 0.0, 1.0))
-#        matches["price"] = price_match
-#
-#        # Features/Tags
-#        def feature_score(rows):
-#            features = rows["features"] + rows["tags"]
-#           return len(set(features).intersection(self.preferred_environment))
-#
-#        feature_vector = matches.apply(feature_score, axis=1)
-#        features_normalized = (feature_vector - feature_vector.min())/ max((feature_vector.max() - feature_vector.min()), 0.001)
-#        matches["feature_vector"] = features_normalized
-#
-#        matches["match_score"] = (
-#                w_price * matches["price"] +
-#                w_features * matches["feature_vector"])
-#
-#    def get_matches(self, matches):
-#        return matches.sort("match_score", ascending=False)
+    def match_property_by_feature(self, properties: list[Property]):
+        matches = []
+        for prop in properties:
+            for pref in self.preferred_environment:
+                if pref in [prop.location, prop.type] or \
+                    pref in prop.features or \
+                    pref in prop.tags:
+                    matches.append(prop)
+                    break
+        return pd.DataFrame(matches)
+
+    def score_property(self, property: Property, w_price=0.6, w_features=0.4):
+        matches = self.match_property_by_feature(Property)
+
+        # Price
+        price_match = np.array(np.clip((self.budget_range[1] - matches["price_per_night"]) / max(self.budget_range[1], 0.001), 0.0, 1.0))
+        matches["price"] = price_match
+
+        # Features/Tags
+        def feature_score(rows):
+            features = rows["features"] + rows["tags"]
+           return len(set(features).intersection(self.preferred_environment))
+
+        feature_vector = matches.apply(feature_score, axis=1)
+        features_normalized = (feature_vector - feature_vector.min())/ max((feature_vector.max() - feature_vector.min()), 0.001)
+        matches["feature_vector"] = features_normalized
+
+        matches["match_score"] = (
+                w_price * matches["price"] +
+                w_features * matches["feature_vector"])
+
+    def get_matches(self, matches):
+        return matches.sort_values(by="match_score", ascending=False)[["property_id", "location", "types", "price_per_night", "features", "tags"]]).head(5)
 
 ################## datetime ISO control ##################
 # def iso_now():
