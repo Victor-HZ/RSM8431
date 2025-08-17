@@ -1,7 +1,6 @@
 from datetime import datetime
 import json, requests, getpass
 import numpy as np
-from overrides.typing_utils import unknown
 
 ENVIRONMENTS = ("mountain","lake","beach","city","rural","suburban","desert","forest","ski","island")
 PROPERTY_TYPES = ("apartment","house","cabin","villa","condo","townhome","bnb")
@@ -55,10 +54,12 @@ class Property:
         return {
             "property_id": self.property_id,
             "location": self.location,
-            "type": self.property_type,
+            "property_type": self.property_type,
             "price_per_night": self.price_per_night,
             "features": self.features,
             "tags": self.tags,
+            "max_guests": self.max_guests,
+            "environment": self.environment
         }
 
     def update_id(self, property_id: int):
@@ -113,7 +114,7 @@ class Property:
     def get_environment(self):
         return self.environment
 
-    def get_max_guestw(self):
+    def get_max_guests(self):
         return self.max_guests
 
 
@@ -212,17 +213,34 @@ class User:
         # TODO
         return
 
+################## datetime ISO control ##################
+# def iso_now():
+#     return datetime.now().replace(microsecond=0).isoformat(timespec="seconds")
+#
+# def time_to_iso(dt: datetime):
+#     return dt.replace(microsecond=0).isoformat(timespec="seconds")
+#
+# def string_to_iso(time_str: str):
+#     if time_str.lower() == 'n':
+#         return iso_now()
+#
+#     time_str = time_str.replace(' ', 'T')
+#     try:
+#         dt = datetime.fromisoformat(time_str)
+
+
 
 def load_from_file() -> tuple[list[Property], list[User]]:
     with open("properties.json", "r") as file:
         temp_properties = json.load(file)
     if type(temp_properties) == list:
-        property_result = [Property(prop['property_id'], prop['location'], prop['type'], prop['price_per_night'],
-                                    prop['features'], prop['tags'], prop['environment'], prop['max_guests']) for prop in temp_properties]
+        property_result = [Property(prop['property_id'], prop['location'], prop['property_type'], prop['price_per_night'],
+                                    prop['features'], prop['tags'], prop['max_guests'], prop['environment']) for prop in temp_properties]
     else:
         property_result = [
-            Property(temp_properties['property_id'], temp_properties['location'], temp_properties['type'],
-                     temp_properties['price_per_night'], temp_properties['features'], temp_properties['tags'], temp_properties['environment'],temp_properties['max_guests']) for temp_properties in temp_properties]
+            Property(temp_properties['property_id'], temp_properties['location'], temp_properties['property_type'],
+                     temp_properties['price_per_night'], temp_properties['features'], temp_properties['tags'],
+                     temp_properties['max_guests'], temp_properties['environment']) for temp_properties in temp_properties]
     with open("users.json", "r") as file:
         temp_users = json.load(file)
     if type(temp_users) == list:
