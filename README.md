@@ -159,19 +159,18 @@ Not implemented (llm_summary() is empty).
 
 ---
 
-## Recommendation Logic (Planned)
+## Recommendation Logic 
 
 Per the spec:
 1) Filtering 
 - Budget range: price_per_night ∈ [budget_min, budget_max]
 - Group size: (currently missing capacity field; can’t filter)
 2) Scoring
-- Environment match: overlap of preferred_environment vs property tags
-- Budget closeness: normalized difference from budget midpoint
-- Feature/tag matches: e.g. wifi, lakefront, hot tub
+- Price matches: Identifies properties closest to user budget
+- Feature/tag matches: e.g. wifi, lakefront, hot tub - (naively) identifies properties which have the most similarities closest to users preferred environment 
 - Weighted sum: 
 ```
-score = 0.5*env_score + 0.3*budget_score + 0.2*feature_score
+score = 0.6*price_score + 0.4*feature_score
 ```
 3) Ranking & Output
 - Sort by score
