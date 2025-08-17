@@ -14,15 +14,15 @@ class Property:
         self.property_type = property_type.strip().lower()
         self.price_per_night = price_per_night
         self.max_guests = max_guests
-        self.environment = environment
-        if type(features_list) is str:
-            self.features = [features_list]
+        self.environment = environment.strip().lower()
+        if isinstance(features_list, str):
+            self.features = features_list.lower().strip()
         else:
-            self.features = features_list
-        if type(tags_list) is str:
-            self.tags = [tags_list]
+            self.features = [feature.lower().strip() for feature in features_list]
+        if isinstance(tags_list, str):
+            self.tags = [tags_list.lower().strip()]
         else:
-            self.tags = tags_list
+            self.tags = [tag.lower().strip() for tag in tags_list]
 
         if self.property_type not in PROPERTY_TYPES:
             raise ValueError(f"Property type {self.property_type} is not supported.")
