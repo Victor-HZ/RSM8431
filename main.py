@@ -1,15 +1,21 @@
 from datetime import datetime
 import json, requests, getpass
 import numpy as np
+from overrides.typing_utils import unknown
 
+ENVIRONMENTS = ("mountain","lake","beach","city","rural","suburban","desert","forest","ski","island")
+PROPERTY_TYPES = ("apartment","house","cabin","villa","condo","townhome","bnb")
+FEATURES = ("hot_tub","fireplace","wifi","kitchen","parking","pool","pet_friendly","ev_charger")
 
 class Property:
-    def __init__(self, property_id: int, location: str, loc_type: str, price_per_night: float, features_list: list[str],
-                 tags_list: list[str]):
+    def __init__(self, property_id: int, location: str, property_type: str, price_per_night: float, features_list: list[str],
+                 tags_list: list[str], max_guests: int, environment: str):
         self.property_id = property_id
-        self.location = location
-        self.type = loc_type
+        self.location = location.strip().lower()
+        self.property_type = property_type.strip().lower()
         self.price_per_night = price_per_night
+        self.max_guests = max_guests
+        self.environment = environment
         if type(features_list) is str:
             self.features = [features_list]
         else:
@@ -18,6 +24,15 @@ class Property:
             self.tags = [tags_list]
         else:
             self.tags = tags_list
+
+        if self.property_type not in PROPERTY_TYPES:
+            raise ValueError(f"Property type {self.property_type} is not supported.")
+        if self.environment not in ENVIRONMENTS:
+            raise ValueError(f"Environment {self.environment} is not supported.")
+        unknown = [feature for feature in self.features if feature not in FEATURES]
+        if unknown:
+            raise ValueError(f"Unknown features {self.features}.")
+
 
     def __str__(self):
         feature_list = "Features: "
@@ -29,7 +44,8 @@ class Property:
         return (f"--------------------------------------\n"
                 f"ID: {self.property_id}\n"
                 f"Location: {self.location}\n"
-                f"Type: {self.type}\n"
+                f"Type: {self.property_type}\n"
+                f"Max guests: {self.max_guests}\n"
                 f"Nightly Price: {self.price_per_night}\n"
                 f"{feature_list}\n"
                 f"{tag_list}\n"
@@ -39,7 +55,7 @@ class Property:
         return {
             "property_id": self.property_id,
             "location": self.location,
-            "type": self.type,
+            "type": self.property_type,
             "price_per_night": self.price_per_night,
             "features": self.features,
             "tags": self.tags,
@@ -49,7 +65,9 @@ class Property:
         self.property_id = property_id
 
     def update_type(self, property_type: str):
-        self.type = property_type
+        self.property_type = property_type
+        if self.property_type not in PROPERTY_TYPES:
+            raise ValueError(f"Property type {self.property_type} is not supported.")
 
     def update_price_per_night(self, price_per_night: float):
         self.price_per_night = price_per_night
@@ -60,14 +78,25 @@ class Property:
     def update_tags(self, tags: list[str]):
         self.tags = tags
 
+    def update_max_guests(self, max_guests: int):
+        self.max_guests = max_guests
+
     def update_features(self, features: list[str]):
         self.features = features
+        unknown = [feature for feature in self.features if feature not in FEATURES]
+        if unknown:
+            raise ValueError(f"Unknown features {self.features}.")
+
+    def update_environment(self, environment: str):
+        self.environment = environment
+        if  self.environment not in ENVIRONMENTS:
+            raise ValueError(f"Environment {self.environment} is not supported.")
 
     def get_id(self):
         return self.property_id
 
     def get_type(self):
-        return self.type
+        return self.property_type
 
     def get_price_per_night(self):
         return self.price_per_night
@@ -80,6 +109,12 @@ class Property:
 
     def get_features(self):
         return self.features
+
+    def get_environment(self):
+        return self.environment
+
+    def get_max_guestw(self):
+        return self.max_guests
 
 
 class User:
@@ -102,13 +137,16 @@ class User:
             self.preferred_environment = [preferred_environment]
         else:
             self.preferred_environment = preferred_environment
-        self.budget_range = budget_range
+        self.budget_range = min(budget_range), max(budget_range)
         self.travel_date = travel_date
 
+        unknown_env = [env for env in self.preferred_environment if env not in ENVIRONMENTS]
+        if unknown_env:
+            raise ValueError(f"Unknown preferred environment {self.preferred_environment} is not supported.")
+
     def __str__(self):
-        env_list = "Preferred Environments: "
-        for env in self.preferred_environment:
-            env_list += f"\n\t{env}"
+        env_list = "Preferred Environments:\n\t" + "\n\t".join(self.preferred_environment) \
+            if self.preferred_environment else "Preferred Environments: (none)"
         return (f"--------------------------------------\n"
                 f"ID: {self.user_id}\n"
                 f"Name: {self.name}\n"
@@ -145,6 +183,9 @@ class User:
 
     def update_preferred_environment(self, preferred_environment: list[str]):
         self.preferred_environment = preferred_environment
+        unknown_env = [env for env in self.preferred_environment if env not in ENVIRONMENTS]
+        if unknown_env:
+            raise ValueError(f"Unknown preferred environment {self.preferred_environment} is not supported.")
 
     def get_id(self):
         return self.user_id
@@ -177,11 +218,11 @@ def load_from_file() -> tuple[list[Property], list[User]]:
         temp_properties = json.load(file)
     if type(temp_properties) == list:
         property_result = [Property(prop['property_id'], prop['location'], prop['type'], prop['price_per_night'],
-                                    prop['features'], prop['tags']) for prop in temp_properties]
+                                    prop['features'], prop['tags'], prop['environment'], prop['max_guests']) for prop in temp_properties]
     else:
         property_result = [
             Property(temp_properties['property_id'], temp_properties['location'], temp_properties['type'],
-                     temp_properties['price_per_night'], temp_properties['features'], temp_properties['tags'])]
+                     temp_properties['price_per_night'], temp_properties['features'], temp_properties['tags'], temp_properties['environment'],temp_properties['max_guests']) for temp_properties in temp_properties]
     with open("users.json", "r") as file:
         temp_users = json.load(file)
     if type(temp_users) == list:
