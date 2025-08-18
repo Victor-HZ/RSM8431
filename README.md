@@ -2,6 +2,8 @@
 
 # LLM-Powered Summer Home Recommender
 
+test
+
 A command-line application based on python for recommending vacation rentals.  The project supports user/property profile management, provides an interactive CLI menu, and leaves placeholders for LLM-powered travel blurbs and synthetic property generation (not yet implemented).
 
 
