@@ -1,6 +1,9 @@
 from datetime import datetime
 import json, requests, getpass
 import numpy as np
+import pandas as pd
+from PIL.features import features
+from qstylizer.descriptor import prop
 
 ENVIRONMENTS = ("mountain","lake","beach","city","rural","suburban","desert","forest","ski","island")
 PROPERTY_TYPES = ("apartment","house","cabin","villa","condo","townhome","bnb")
@@ -209,8 +212,28 @@ class User:
     def match_property_by_feature(self, properties: list[Property]):
        return
 
-    def score_property(self, property: Property):
-        # TODO
+    def score_properties(self, properties: list[Property]):
+        """
+        To return a list of score for properties. The rule is following:
+        20% Budget Score
+        30% Capacity Score
+        20% Environment Matching Score
+        15% Feature Abundancy
+        15% LLM Score
+
+        :param properties:
+        :return:
+        """
+        properties_df = properties_to_df(properties)
+
+        # Budget Score
+        # 1 = mean of user's budget range
+        # 0 = 1 stddev away from max/min
+        # Z score normed in 0 - 1 for rest points
+        budget_mean = sum(self.budget_range) / 2
+        budget_std = np.std(self.budget_range)
+        price_z_score = properties_df[(properties_df["Budget Score"] -budget_mean)/ budget_std]
+
         return
 
 ################## datetime ISO control ##################
@@ -235,11 +258,11 @@ def load_from_file() -> tuple[list[Property], list[User]]:
         temp_properties = json.load(file)
     if type(temp_properties) == list:
         property_result = [Property(prop['property_id'], prop['location'], prop['property_type'], prop['price_per_night'],
-                                    prop['features'], prop['tags'], prop['max_guests'], prop['environment']) for prop in temp_properties]
+                                    prop['features'], prop['property_tags'], prop['max_guests'], prop['environment']) for prop in temp_properties]
     else:
         property_result = [
             Property(temp_properties['property_id'], temp_properties['location'], temp_properties['property_type'],
-                     temp_properties['price_per_night'], temp_properties['features'], temp_properties['tags'],
+                     temp_properties['price_per_night'], temp_properties['features'], temp_properties['property_tags'],
                      temp_properties['max_guests'], temp_properties['environment']) for temp_properties in temp_properties]
     with open("users.json", "r") as file:
         temp_users = json.load(file)
@@ -265,6 +288,16 @@ def write_to_file(properties: list[Property], users: list[User]) -> bool:
         return True
     except FileNotFoundError:
         return False
+
+def properties_to_df(properties: list[Property]) -> pd.DataFrame:
+    df = pd.DataFrame([
+        prop.get_dict() for prop in properties
+    ])
+    env_dummy = pd.get_dummies(df['environment'], prefix='environment')
+    type_dummy = pd.get_dummies(df['type'], prefix='type')
+    features_dummies = pd.get_dummies(df['features'].explode(), prefix='features').groupby(level=0).max()
+    tags_dummies = pd.get_dummies(df['tags'].explode(), prefix='tags').groupby(level=0).max()
+    return pd.concat([df.drop(columns=['property_type', 'environment','features', 'tags']), env_dummy, type_dummy, features_dummies, tags_dummies], axis=1)
 
 
 def search_user():
