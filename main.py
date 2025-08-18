@@ -10,8 +10,41 @@ PROPERTY_TYPES = ("apartment","house","cabin","villa","condo","townhome","bnb")
 FEATURES = ("hot_tub","fireplace","wifi","kitchen","parking","pool","pet_friendly","ev_charger")
 
 class Property:
+    """
+    A class representing a rental property listing.
+
+    Attributes:
+        property_id (int): Unique identifier for the property.
+        location (str): The property's location (stored in lowercase).
+        property_type (str): The type of property (e.g., cabin, condo, house).
+        price_per_night (float): Nightly price for renting the property.
+        features (list[str]): List of features (e.g., WiFi, hot tub, pet-friendly).
+        tags (list[str]): List of descriptive tags (e.g., family-friendly, nightlife).
+        max_guests (int): Maximum number of guests allowed.
+        environment (str): The environment of the property (e.g., mountain, lake, beach, city).
+
+    Raises:
+        ValueError: If the property type, environment, or features are invalid.
+    """
+
     def __init__(self, property_id: int, location: str, property_type: str, price_per_night: float, features_list: list[str],
                  tags_list: list[str], max_guests: int, environment: str):
+        """
+        Initialize a new Property instance.
+
+        Args:
+            property_id (int): Unique identifier for the property.
+            location (str): Location of the property.
+            property_type (str): Type of the property (must be in PROPERTY_TYPES).
+            price_per_night (float): Price per night.
+            features_list (list[str]): Features provided by the property.
+            tags_list (list[str]): Tags describing the property.
+            max_guests (int): Maximum allowed guests.
+            environment (str): Environment (must be in ENVIRONMENTS).
+
+        Raises:
+            ValueError: If property_type, environment, or features are invalid.
+        """
         self.property_id = property_id
         self.location = location.strip().lower()
         self.property_type = property_type.strip().lower()
@@ -37,6 +70,12 @@ class Property:
 
 
     def __str__(self):
+        """
+        Return a formatted string representation of the property.
+
+        Returns:
+            str: Readable details of the property, including features and tags.
+        """
         feature_list = "Features: "
         for feature in self.features:
             feature_list += f"\n\t{feature}"
@@ -54,6 +93,12 @@ class Property:
                 f"--------------------------------------\n\n")
 
     def get_dict(self):
+        """
+        Convert the property details to a dictionary.
+
+        Returns:
+            dict: A dictionary with property attributes.
+        """
         return {
             "property_id": self.property_id,
             "location": self.location,
@@ -66,58 +111,163 @@ class Property:
         }
 
     def update_id(self, property_id: int):
+        """
+        Update the property ID.
+
+        Args:
+            property_id (int): New unique identifier for the property.
+        """
         self.property_id = property_id
 
     def update_type(self, property_type: str):
+        """
+        Update the property type.
+
+        Args:
+            property_type (str): New type of property (must be in PROPERTY_TYPES).
+
+        Raises:
+            ValueError: If property_type is invalid.
+        """
         self.property_type = property_type
         if self.property_type not in PROPERTY_TYPES:
             raise ValueError(f"Property type {self.property_type} is not supported.")
 
     def update_price_per_night(self, price_per_night: float):
+        """
+        Update the nightly rental price.
+
+        Args:
+            price_per_night (float): New price per night.
+        """
         self.price_per_night = price_per_night
 
     def update_location(self, location: str):
+        """
+        Update the property location.
+
+        Args:
+            location (str): New location.
+        """
         self.location = location
 
     def update_tags(self, tags: list[str]):
+        """
+        Update the tags describing the property.
+
+        Args:
+            tags (list[str]): List of new tags.
+        """
         self.tags = tags
 
     def update_max_guests(self, max_guests: int):
+        """
+        Update the maximum number of guests.
+
+        Args:
+            max_guests (int): New maximum guest count.
+        """
         self.max_guests = max_guests
 
     def update_features(self, features: list[str]):
+        """
+        Update the list of property features.
+
+        Args:
+            features (list[str]): New list of features.
+
+        Raises:
+            ValueError: If unknown features are provided.
+        """
         self.features = features
         unknown = [feature for feature in self.features if feature not in FEATURES]
         if unknown:
             raise ValueError(f"Unknown features {self.features}.")
 
     def update_environment(self, environment: str):
+        """
+        Update the property environment.
+
+        Args:
+            environment (str): New environment (must be in ENVIRONMENTS).
+
+        Raises:
+            ValueError: If the environment is invalid.
+        """
         self.environment = environment
         if  self.environment not in ENVIRONMENTS:
             raise ValueError(f"Environment {self.environment} is not supported.")
 
     def get_id(self):
+        """
+        Get the property ID.
+
+        Returns:
+            int: The unique property identifier.
+        """
         return self.property_id
 
     def get_type(self):
+        """
+        Get the property type.
+
+        Returns:
+            str: The property type.
+        """
         return self.property_type
 
     def get_price_per_night(self):
+        """
+        Get the nightly rental price.
+
+        Returns:
+            float: The price per night.
+        """
         return self.price_per_night
 
     def get_location(self):
+        """
+        Get the property location.
+
+        Returns:
+            str: The location of the property.
+        """
         return self.location
 
     def get_tags(self):
+        """
+        Get the list of property tags.
+
+        Returns:
+            list[str]: Tags associated with the property.
+        """
         return self.tags
 
     def get_features(self):
+        """
+        Get the list of property features.
+
+        Returns:
+            list[str]: Features of the property.
+        """
         return self.features
 
     def get_environment(self):
+        """
+        Get the property environment.
+
+        Returns:
+            str: The environment type.
+        """
         return self.environment
 
     def get_max_guests(self):
+        """
+        Get the maximum number of guests allowed.
+
+        Returns:
+            int: Maximum guest capacity.
+        """
         return self.max_guests
 
 
