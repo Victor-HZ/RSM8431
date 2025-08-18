@@ -1,13 +1,26 @@
 from datetime import datetime
 import json, requests, getpass
+
+import numpy
 import numpy as np
 import pandas as pd
-from PIL.features import features
-from qstylizer.descriptor import prop
 
 ENVIRONMENTS = ("mountain","lake","beach","city","rural","suburban","desert","forest","ski","island")
-PROPERTY_TYPES = ("apartment","house","cabin","villa","condo","townhome","bnb")
-FEATURES = ("hot_tub","fireplace","wifi","kitchen","parking","pool","pet_friendly","ev_charger")
+PROPERTY_TYPES = ("apartment","house","cabin","villa","condo","townhome","bnb", "chalet", "cottage", "loft")
+FEATURES = ("hot_tub","fireplace","wifi","kitchen","parking","pool","pet_friendly","ev_charger", "gym", "bbq",
+            "patio", "garden", "beach access", "canoe", "kayak", "air conditioning", "washer", "dryer")
+
+LOCATIONS = (
+    "Lake Muskoka", "Toronto Downtown", "Blue Mountain",
+    "Niagara-on-the-Lake", "Prince Edward County", "Collingwood",
+    "Wasaga Beach", "Kingston", "Ottawa", "Halifax")
+
+
+TAGS_POOL = [
+    "lakefront", "beachfront", "family-friendly", "pets", "luxury",
+    "urban", "nightlife", "business", "mountains", "romantic", "quiet", "nature"
+]
+
 
 class Property:
     def __init__(self, property_id: int, location: str, property_type: str, price_per_night: float, features_list: list[str],
@@ -227,15 +240,35 @@ class User:
         properties_df = properties_to_df(properties)
 
         # Budget Score
-        # 1 = mean of user's budget range
-        # 0 = 1 stddev away from max/min
-        # Z score normed in 0 - 1 for rest points
+        # 10 = mean of user's budget range
+        # Z score normed in 0 - 10 for rest points
         budget_mean = sum(self.budget_range) / 2
-        budget_std = np.std(self.budget_range)
-        price_z_score = properties_df[(properties_df["Budget Score"] -budget_mean)/ budget_std]
+        budget_std = max(np.std(self.budget_range), 0.00001)
+        properties_df["price score"] = np.clip(10 * (1 - abs((properties_df["price_per_night"] - budget_mean)/ budget_std)), 0, 10)
 
-        return
+        # Capacity Score
+        # 10 = exact party size of the user
+        # for each one unsatisfied spot minus 3 points
+        properties_df["capacity score"] = np.clip(10 - 3 * (self.group_size - properties_df["max_guests"]), 0, 10)
 
+        # Environment Score
+        # 10 = environment matched
+        environment_token = ["environment_" + penv for penv in self.preferred_environment]
+        properties_df["environment score"] = 0
+        for penv in environment_token:
+            properties_df["environment score"] = np.clip((10 * properties_df[penv].astype(int) + properties_df["environment score"]), 0, 10)
+
+        # Feature Abundancy
+
+        properties_df["feature score"] = sum(properties_df["features_" + token] for token in FEATURES)
+
+        # LLM Score
+        properties_df["LLM score"] = llm_score()
+
+        properties_df["total score"] = properties_df["price score"] + properties_df["capacity score"] + properties_df["environment score"] + properties_df["feature score"] + properties_df["LLM score"]
+        return properties_df
+
+def llm_score(): return 0
 ################## datetime ISO control ##################
 # def iso_now():
 #     return datetime.now().replace(microsecond=0).isoformat(timespec="seconds")
@@ -258,7 +291,7 @@ def load_from_file() -> tuple[list[Property], list[User]]:
         temp_properties = json.load(file)
     if type(temp_properties) == list:
         property_result = [Property(prop['property_id'], prop['location'], prop['property_type'], prop['price_per_night'],
-                                    prop['features'], prop['property_tags'], prop['max_guests'], prop['environment']) for prop in temp_properties]
+                                    prop['features'], prop['tags'], prop['max_guests'], prop['environment']) for prop in temp_properties]
     else:
         property_result = [
             Property(temp_properties['property_id'], temp_properties['location'], temp_properties['property_type'],
@@ -294,7 +327,7 @@ def properties_to_df(properties: list[Property]) -> pd.DataFrame:
         prop.get_dict() for prop in properties
     ])
     env_dummy = pd.get_dummies(df['environment'], prefix='environment')
-    type_dummy = pd.get_dummies(df['type'], prefix='type')
+    type_dummy = pd.get_dummies(df['property_type'], prefix='type')
     features_dummies = pd.get_dummies(df['features'].explode(), prefix='features').groupby(level=0).max()
     tags_dummies = pd.get_dummies(df['tags'].explode(), prefix='tags').groupby(level=0).max()
     return pd.concat([df.drop(columns=['property_type', 'environment','features', 'tags']), env_dummy, type_dummy, features_dummies, tags_dummies], axis=1)
