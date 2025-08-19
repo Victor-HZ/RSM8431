@@ -2,7 +2,6 @@ import os
 from datetime import datetime
 import json, requests, getpass
 
-import numpy
 import numpy as np
 import pandas as pd
 
@@ -401,11 +400,10 @@ class User:
     def llm_scoring(self, properties: list[Property]):
 
         result = self._scoring_llm.llm_inquiry([property.get_dict() for property in properties])
-        if result.startswith("```"):
-            start = result.find("[") if "[" in result else result.find("{")
-            end = result.rfind("]")
-            result = result[start:end + 1]
-            cleaned = result.replace("\n", "")
+        start = result.find("[") if "[" in result else result.find("{")
+        end = result.rfind("]")
+        result = result[start:end + 1]
+        cleaned = result.replace("\n", "")
 
         try:
             parsed = json.loads(cleaned)
@@ -804,8 +802,10 @@ def main():
         print("Invalid input")
 
 def get_api():
-    return os.getenv("api_key")
-    # return getpass.getpass(prompt="Enter API Key: ")
+    api_key = os.getenv("API_KEY")
+    if api_key is None:
+        api_key = getpass.getpass(prompt="Enter API Key: ")
+    return api_key
 
 class Llm:
     def __init__(self, api_key: str, model: str, url: str, system_prompt: str):
