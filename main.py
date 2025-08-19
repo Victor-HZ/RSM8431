@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 import json, requests, getpass
 
@@ -306,6 +307,28 @@ class User:
             self.preferred_environment = preferred_environment
         self.budget_range = min(budget_range), max(budget_range)
         self.travel_date = travel_date
+        self._weighted_score = {
+            "budget": .20,
+            "capacity": .30,
+            "environment": .20,
+            "features": .15,
+            "llm": .15,
+        }
+        self.llm_api = get_api()
+        self.llm_url = "https://openrouter.ai/api/v1/chat/completions"
+        self.llm_model = "openai/gpt-4o"
+        json_format = "[{\"property_id\", \"score\", \"recommendation\"},]"
+        self.system_prompt = (f"You are an assistant for an Airbnb-like vacation property search. "
+                         f"The user has following requirements for the desired property:\n"
+                         f"1. group size: {self.group_size}\n"
+                         f"2. preferred environment: {self.preferred_environment}\n"
+                         f"3. budget range: {self.budget_range}\n"
+                         f"You will be provide a list of properties , return a JSON object with "
+                         f"1. the property id from the provided list, 2. the score of each property from 1 to 10, "
+                         f"and 3. a simple recommendation for the property to the user within 75 words.\n"
+                         f"Only return valid JSON with following structure that includes all provided property: {json_format} without newline"
+                         f"Do not omit any property")
+        self.scoring_llm = Llm(self.llm_api, self.llm_model, self.llm_url, self.system_prompt)
 
         unknown_env = [env for env in self.preferred_environment if env not in ENVIRONMENTS]
         if unknown_env:
@@ -375,6 +398,22 @@ class User:
     def match_property_by_feature(self, properties: list[Property]):
        return
 
+    def llm_scoring(self, properties: list[Property]):
+
+        result = self.scoring_llm.llm_inquiry([property.get_dict() for property in properties])
+        if result.startswith("```"):
+            start = result.find("{") if "{" in result else result.find("[")
+            end = result.rfind("}")
+            result = result[start:end + 1]
+            result = result.replace("\n", "")
+
+        try:
+            parsed = json.loads(result)
+        except json.JSONDecodeError:
+            raise ValueError("LLM output is not valid JSON")
+
+        return pd.DataFrame(parsed)
+
     def score_properties(self, properties: list[Property]):
         """
         To return a list of score for properties. The rule is following:
@@ -413,12 +452,17 @@ class User:
         properties_df["feature score"] = sum(properties_df["features_" + token] for token in FEATURES)
 
         # LLM Score
-        properties_df["LLM score"] = llm_score()
+        llm_score_df = self.llm_scoring(properties).add_prefix("llm_").rename(columns={"llm_property_id": "property_id"})
+        properties_df = pd.merge(properties_df, llm_score_df, how="left", on="property_id")
 
-        properties_df["total score"] = properties_df["price score"] + properties_df["capacity score"] + properties_df["environment score"] + properties_df["feature score"] + properties_df["LLM score"]
-        return properties_df
+        properties_df["total score"] = (
+                self._weighted_score["budget"] * properties_df["price score"] +
+                self._weighted_score["capacity"] * properties_df["capacity score"] +
+                self._weighted_score["environment"] * properties_df["environment score"] +
+                self._weighted_score["features"] * properties_df["feature score"] +
+                self._weighted_score["llm"] * properties_df["llm_score"])
+        return properties_df[["property_id", "total score", "llm_recommendation"]].sort_values("total score", ascending=False)
 
-def llm_score(): return 0
 ################## datetime ISO control ##################
 # def iso_now():
 #     return datetime.now().replace(microsecond=0).isoformat(timespec="seconds")
@@ -445,7 +489,7 @@ def load_from_file() -> tuple[list[Property], list[User]]:
     else:
         property_result = [
             Property(temp_properties['property_id'], temp_properties['location'], temp_properties['property_type'],
-                     temp_properties['price_per_night'], temp_properties['features'], temp_properties['property_tags'],
+                     temp_properties['price_per_night'], temp_properties['features'], temp_properties['tags'],
                      temp_properties['max_guests'], temp_properties['environment']) for temp_properties in temp_properties]
     with open("users.json", "r") as file:
         temp_users = json.load(file)
@@ -499,11 +543,6 @@ def filter_user():
 
 
 def filter_property():
-    # TODO
-    return
-
-
-def map_visualization():
     # TODO
     return
 
@@ -748,14 +787,15 @@ if __name__ == "__main__":
     main()
 
 def get_api():
-    return "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"
+    return os.getenv("api_key")
     # return getpass.getpass(prompt="Enter API Key: ")
 
 class Llm:
-    def __init__(self, api_key: str, model: str, url: str):
+    def __init__(self, api_key: str, model: str, url: str, system_prompt: str):
         self.api_key = api_key
         self.model = model
         self.url = url
+        self.system_prompt = system_prompt
         self.headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
@@ -763,8 +803,9 @@ class Llm:
 
     def update_api_key(self, api_key: str):
         self.api_key = api_key
-        self.header = {
+        self.headers = {
             "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
         }
 
     def update_model(self, model: str):
@@ -773,24 +814,24 @@ class Llm:
     def update_url(self, url: str):
         self.url = url
 
-    def llm_inquiry(self, system_prompt, user_prompt):
+    def llm_inquiry(self, user_prompt):
         payload = {
             "model": self.model,
             "messages": [
                 {
                     "role": "system",
-                    "content": system_prompt,
+                    "content": self.system_prompt,
                 },
                 {
                     "role": "user",
-                    "content": user_prompt,
+                    "content": str(user_prompt)
                 },
             ],
             "temperature": 0.2
         }
 
         try:
-            r = requests.post(self.url, headers=self.header, json=payload, timeout=60)
+            r = requests.post(self.url, headers=self.headers, json=payload, timeout=60)
             # Helpful debug if something goes wrong
             if r.status_code != 200:
                 return {"error": f"HTTP {r.status_code}", "details": r.text}
@@ -798,23 +839,27 @@ class Llm:
             # Expected shape: data["choices"][0]["message"]["content"]
             msg = (data.get("choices") or [{}])[0].get("message", {}).get("content")
             if not msg:
-                return {"error": "No content in response", "details": data}
-            # Try to parse JSON content the model returned
-            try:
-                return json.loads(msg)
-            except json.JSONDecodeError:
-                # If the model included extra text, try to extract JSON loosely
-                # (basic fallback—students can improve later)
-                start = msg.find("{")
-                end = msg.rfind("}")
-                if start != -1 and end != -1 and end > start:
-                    try:
-                        return json.loads(msg[start:end+1])
-                    except json.JSONDecodeError:
-                        return {"error": "Model returned non-JSON content", "raw": msg}
-                return {"error": "Model returned non-JSON content", "raw": msg}
+                raise ValueError("error: No content in response")
+            return msg
         except Exception as e:
             return {"error": "Request failed", "details": str(e)}
+
+        # Try to parse JSON content the model returned
+        #     try:
+        #         return json.loads(msg)
+        #     except json.JSONDecodeError:
+        #         # If the model included extra text, try to extract JSON loosely
+        #         # (basic fallback—students can improve later)
+        #         start = msg.find("{")
+        #         end = msg.rfind("}")
+        #         if start != -1 and end != -1 and end > start:
+        #             try:
+        #                 return json.loads(msg[start:end+1])
+        #             except json.JSONDecodeError:
+        #                 return {"error": "Model returned non-JSON content", "raw": msg}
+        #         return {"error": "Model returned non-JSON content", "raw": msg}
+        # except Exception as e:
+        #     return {"error": "Request failed", "details": str(e)}
 
 #
 # ###############################################################################################
