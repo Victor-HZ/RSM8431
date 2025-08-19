@@ -5,21 +5,14 @@ import json, requests, getpass
 import numpy as np
 import pandas as pd
 
-ENVIRONMENTS = ("mountain","lake","beach","city","rural","suburban","desert","forest","ski","island")
-PROPERTY_TYPES = ("apartment","house","cabin","villa","condo","townhome","bnb", "chalet", "cottage", "loft")
-FEATURES = ("hot_tub","fireplace","wifi","kitchen","parking","pool","pet_friendly","ev_charger", "gym", "bbq",
-            "patio", "garden", "beach access", "canoe", "kayak", "air conditioning", "washer", "dryer")
-
-LOCATIONS = (
-    "Lake Muskoka", "Toronto Downtown", "Blue Mountain",
-    "Niagara-on-the-Lake", "Prince Edward County", "Collingwood",
-    "Wasaga Beach", "Kingston", "Ottawa", "Halifax")
-
-
-TAGS_POOL = [
-    "lakefront", "beachfront", "family-friendly", "pets", "luxury",
-    "urban", "nightlife", "business", "mountains", "romantic", "quiet", "nature"
-]
+ENVIRONMENTS = ["mountain","lake","beach","city","rural","suburban","desert","forest","ski","island"]
+PROPERTY_TYPES = ["apartment","house","cabin","villa","condo","townhome","bnb", "chalet", "cottage", "loft"]
+FEATURES = ["hot_tub","fireplace","wifi","kitchen","parking","pool","pet_friendly","ev_charger", "gym", "bbq",
+            "patio", "garden", "beach access", "canoe", "kayak", "air conditioning", "washer", "dryer"]
+LOCATIONS = ["Lake Muskoka", "Toronto Downtown", "Blue Mountain","Niagara-on-the-Lake", "Prince Edward County",
+             "Collingwood", "Wasaga Beach", "Kingston", "Ottawa", "Halifax"]
+TAGS_POOL = ["lakefront", "beachfront", "family-friendly", "pets", "luxury", "urban", "nightlife", "business",
+             "mountains", "romantic", "quiet", "nature"]
 
 
 class Property:
@@ -98,6 +91,7 @@ class Property:
         return (f"--------------------------------------\n"
                 f"ID: {self.property_id}\n"
                 f"Location: {self.location}\n"
+                f"Environment: {self.environment}\n"
                 f"Type: {self.property_type}\n"
                 f"Max guests: {self.max_guests}\n"
                 f"Nightly Price: {self.price_per_night}\n"
@@ -130,6 +124,8 @@ class Property:
             property_id (int): New unique identifier for the property.
         """
         self.property_id = property_id
+        if not isinstance(property_id, int):
+            raise ValueError("Property ID must be an integer.")
 
     def update_type(self, property_type: str):
         """
@@ -153,6 +149,8 @@ class Property:
             price_per_night (float): New price per night.
         """
         self.price_per_night = price_per_night
+        if not isinstance(price_per_night, (int, float)):
+            raise ValueError("Price per night must be a number.")
 
     def update_location(self, location: str):
         """
@@ -161,7 +159,9 @@ class Property:
         Args:
             location (str): New location.
         """
-        self.location = location
+        self.location = location.strip().lower()
+        if not isinstance(location, str):
+            raise ValueError("Location must be a string.")
 
     def update_tags(self, tags: list[str]):
         """
@@ -170,7 +170,12 @@ class Property:
         Args:
             tags (list[str]): List of new tags.
         """
-        self.tags = tags
+        if isinstance(tags, str):
+            self.tags = [tags.strip().lower()]
+        self.tags = [tag.strip().lower() for tag in tags]
+        unknown = [tag for tag in tags if not isinstance(tag, str)]
+        if unknown:
+            raise ValueError("Tags must be a list of strings.")
 
     def update_max_guests(self, max_guests: int):
         """
@@ -180,6 +185,10 @@ class Property:
             max_guests (int): New maximum guest count.
         """
         self.max_guests = max_guests
+        if  isinstance(max_guests, int):
+            raise ValueError("Maximum guest count must be an integer.")
+        if max_guests < 1:
+            raise ValueError("Maximum guest count must be at least 1.")
 
     def update_features(self, features: list[str]):
         """
@@ -191,7 +200,9 @@ class Property:
         Raises:
             ValueError: If unknown features are provided.
         """
-        self.features = features
+        if not isinstance(features, list):
+            raise ValueError("Features must be a list.")
+        self.features = [feature.strip().lower() for feature in features]
         unknown = [feature for feature in self.features if feature not in FEATURES]
         if unknown:
             raise ValueError(f"Unknown features {self.features}.")
@@ -206,7 +217,7 @@ class Property:
         Raises:
             ValueError: If the environment is invalid.
         """
-        self.environment = environment
+        self.environment = environment.strip().lower()
         if  self.environment not in ENVIRONMENTS:
             raise ValueError(f"Environment {self.environment} is not supported.")
 
@@ -297,12 +308,16 @@ class User:
         :param travel_date: Travel Date
         """
         self.user_id = user_id
-        self.name = name
+        self.name = name.strip().lower()
         self.group_size = group_size
-        if type(preferred_environment) is str:
-            self.preferred_environment = [preferred_environment]
+        if isinstance(preferred_environment, str):
+            self.preferred_environment = [preferred_environment.strip().lower()]
         else:
             self.preferred_environment = preferred_environment
+        unknown_env = [env for env in self.preferred_environment if env not in ENVIRONMENTS]
+        if unknown_env:
+            raise ValueError(f"Unknown preferred environment {self.preferred_environment} is not supported.")
+
         self.budget_range = min(budget_range), max(budget_range)
         self.travel_date = travel_date
         self._weighted_score = {
@@ -315,7 +330,7 @@ class User:
         self._llm_api = get_api()
         self._llm_url = "https://openrouter.ai/api/v1/chat/completions"
         self._llm_model = "openai/gpt-4o"
-        json_format = "[{\"property_id\", \"score\", \"recommendation\"},]"
+        json_format = "[{\"property_id\": int, \"score\": float, \"recommendation\": str},]"
         self.system_prompt = (f"You are an assistant for an Airbnb-like vacation property search. "
                               f"The user has following requirements for the desired property:\n"
                               f"1. group size: {self.group_size}\n"
@@ -325,25 +340,21 @@ class User:
                               f"You will be provide a list of properties , return a JSON object with "
                               f"1. the property id from the provided list, 2. the score of each property from 1 to 10, "
                               f"and 3. a simple recommendation for the property to the user within 75 words.\n"
-                              f"Only return valid JSON with following structure that includes all provided property: {json_format}"
-                              f"Do not omit any property")
+                              f"Only return valid JSON with following structure that includes all provided property: "
+                              f"{json_format} Do not omit any property")
         self._scoring_llm = Llm(self._llm_api, self._llm_model, self._llm_url, self.system_prompt)
-
-        unknown_env = [env for env in self.preferred_environment if env not in ENVIRONMENTS]
-        if unknown_env:
-            raise ValueError(f"Unknown preferred environment {self.preferred_environment} is not supported.")
 
     def __str__(self):
         env_list = "Preferred Environments:\n\t" + "\n\t".join(self.preferred_environment) \
             if self.preferred_environment else "Preferred Environments: (none)"
-        return (f"--------------------------------------\n"
+        return (f"\n\n"
                 f"ID: {self.user_id}\n"
                 f"Name: {self.name}\n"
                 f"Group Size: {self.group_size}\n"
                 f"{env_list}\n"
                 f"Budget Range: {self.budget_range[0]} to {self.budget_range[1]}\n"
                 f"Travel Date: {self.travel_date}\n"
-                f"--------------------------------------\n\n")
+                f"--------------------------------------")
 
     def get_dict(self):
         return {
@@ -356,22 +367,35 @@ class User:
         }
 
     def update_name(self, new_name: str):
-        self.name = new_name
+        self.name = new_name.strip().lower()
+        if not isinstance(self.name, str):
+            raise ValueError("Name must be a string.")
 
     def update_id(self, new_id: int):
         self.user_id = new_id
+        if not isinstance(self.user_id, int):
+            raise ValueError("User ID must be an integer.")
 
     def update_budget_range(self, budget_range: tuple[int, int]):
         self.budget_range = budget_range
+        if not isinstance(self.budget_range[0], (float, int)) or not isinstance(self.budget_range[1], (float, int)):
+            raise ValueError("Budget range must be a tuple of two integers or floats.")
 
     def update_travel_date(self, travel_date: datetime):
         self.travel_date = travel_date
 
     def update_group_size(self, group_size: int):
         self.group_size = group_size
+        if not isinstance(self.group_size, int):
+            raise ValueError("Group size must be an integer.")
+        if self.group_size < 1:
+            raise ValueError("Group size must be at least 1.")
 
     def update_preferred_environment(self, preferred_environment: list[str]):
-        self.preferred_environment = preferred_environment
+        if isinstance(preferred_environment, str):
+            self.preferred_environment = [preferred_environment.strip().lower()]
+        elif isinstance(preferred_environment, list):
+            self.preferred_environment = [env.strip().lower() for env in preferred_environment]
         unknown_env = [env for env in self.preferred_environment if env not in ENVIRONMENTS]
         if unknown_env:
             raise ValueError(f"Unknown preferred environment {self.preferred_environment} is not supported.")
@@ -394,10 +418,7 @@ class User:
     def get_group_size(self):
         return self.group_size
 
-    def match_property_by_feature(self, properties: list[Property]):
-       return
-
-    def llm_scoring(self, properties: list[Property]):
+    def _llm_scoring(self, properties: list[Property]):
 
         result = self._scoring_llm.llm_inquiry([property.get_dict() for property in properties])
         start = result.find("[") if "[" in result else result.find("{")
@@ -413,12 +434,7 @@ class User:
 
     def score_properties(self, properties: list[Property]):
         """
-        To return a list of score for properties. The rule is following:
-        20% Budget Score
-        30% Capacity Score
-        20% Environment Matching Score
-        15% Feature Abundancy
-        15% LLM Score
+        To return a list of score for properties.
 
         :param properties:
         :return:
@@ -449,7 +465,7 @@ class User:
         properties_df["feature score"] = sum(properties_df["features_" + token] for token in FEATURES)
 
         # LLM Score
-        llm_score_df = self.llm_scoring(properties).add_prefix("llm_").rename(columns={"llm_property_id": "property_id"})
+        llm_score_df = self._llm_scoring(properties).add_prefix("llm_").rename(columns={"llm_property_id": "property_id"})
         properties_df = pd.merge(properties_df, llm_score_df, how="left", on="property_id")
 
         properties_df["total score"] = (
@@ -460,45 +476,48 @@ class User:
                 self._weighted_score["llm"] * properties_df["llm_score"])
         return properties_df[["property_id", "total score", "llm_recommendation"]].sort_values("total score", ascending=False)
 
-################## datetime ISO control ##################
-# def iso_now():
-#     return datetime.now().replace(microsecond=0).isoformat(timespec="seconds")
-#
-# def time_to_iso(dt: datetime):
-#     return dt.replace(microsecond=0).isoformat(timespec="seconds")
-#
-# def string_to_iso(time_str: str):
-#     if time_str.lower() == 'n':
-#         return iso_now()
-#
-#     time_str = time_str.replace(' ', 'T')
-#     try:
-#         dt = datetime.fromisoformat(time_str)
-
-
 
 def load_from_file() -> tuple[list[Property], list[User]]:
-    with open("properties.json", "r") as file:
-        temp_properties = json.load(file)
-    if type(temp_properties) == list:
-        property_result = [Property(prop['property_id'], prop['location'], prop['property_type'], prop['price_per_night'],
-                                    prop['features'], prop['tags'], prop['max_guests'], prop['environment']) for prop in temp_properties]
-    else:
-        property_result = [
-            Property(temp_properties['property_id'], temp_properties['location'], temp_properties['property_type'],
-                     temp_properties['price_per_night'], temp_properties['features'], temp_properties['tags'],
-                     temp_properties['max_guests'], temp_properties['environment']) for temp_properties in temp_properties]
-    with open("users.json", "r") as file:
-        temp_users = json.load(file)
-    if type(temp_users) == list:
-        user_result = [User(user['user_id'], user['name'], user['group_size'], user['preferred_environment'],
-                            user['budget_range'], datetime.strptime(user['travel_date'], "%Y-%m-%d %H:%M:%S.%f"))
-                       for user in temp_users]
-    else:
-        user_result = [User(temp_users['user_id'], temp_users['name'], temp_users['group_size'],
-                            temp_users['preferred_environment'], temp_users['budget_range'],
-                            datetime.strptime(temp_users['travel_date'], "%Y-%m-%d %H:%M:%S.%f"))]
-    return property_result, user_result
+    try:
+        with open("properties.json", "r") as file:
+            temp_properties = json.load(file)
+    except FileNotFoundError:
+        raise FileNotFoundError("File not found.")
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Error decoding JSON: {e}")
+
+    try:
+        if type(temp_properties) == list:
+            property_result = [Property(prop['property_id'], prop['location'], prop['property_type'], prop['price_per_night'],
+                                        prop['features'], prop['tags'], prop['max_guests'], prop['environment']) for prop in temp_properties]
+        else:
+            property_result = [
+                Property(temp_properties['property_id'], temp_properties['location'], temp_properties['property_type'],
+                         temp_properties['price_per_night'], temp_properties['features'], temp_properties['tags'],
+                         temp_properties['max_guests'], temp_properties['environment']) for temp_properties in temp_properties]
+    except Exception as e:
+        raise ValueError(f"Error loading properties from file: {e}")
+
+    try:
+        with open("users.json", "r") as file:
+            temp_users = json.load(file)
+    except FileNotFoundError:
+        raise FileNotFoundError("File not found.")
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Error decoding JSON: {e}")
+
+    try:
+        if type(temp_users) == list:
+            user_result = [User(user['user_id'], user['name'], user['group_size'], user['preferred_environment'],
+                                user['budget_range'], datetime.strptime(user['travel_date'], "%Y-%m-%d %H:%M:%S.%f"))
+                           for user in temp_users]
+        else:
+            user_result = [User(temp_users['user_id'], temp_users['name'], temp_users['group_size'],
+                                temp_users['preferred_environment'], temp_users['budget_range'],
+                                datetime.strptime(temp_users['travel_date'], "%Y-%m-%d %H:%M:%S.%f"))]
+        return property_result, user_result
+    except Exception as e:
+        raise ValueError(f"Error loading users from file: {e}")
 
 
 def write_to_file(properties: list[Property], users: list[User]) -> bool:
@@ -511,7 +530,7 @@ def write_to_file(properties: list[Property], users: list[User]) -> bool:
             json.dump(users_list, file, default=str, indent=4)
         return True
     except FileNotFoundError:
-        return False
+        raise FileNotFoundError("File not found.")
 
 
 def properties_to_df(properties: list[Property]) -> pd.DataFrame:
@@ -525,22 +544,16 @@ def properties_to_df(properties: list[Property]) -> pd.DataFrame:
     return pd.concat([df.drop(columns=['property_type', 'environment','features', 'tags']), env_dummy, type_dummy, features_dummies, tags_dummies], axis=1)
 
 
-def search_user():
+def search_user(id=None, name=None, group_size=None, preferred_environment=None, budget_range=None, travel_date=None):
+    if id is None and name is None and group_size is None and preferred_environment is None and budget_range is None and travel_date is None:
+        return None
     # TODO
     return
 
 
-def search_property():
-    # TODO
-    return
-
-
-def filter_user():
-    # TODO
-    return
-
-
-def filter_property():
+def search_property(id=None, location=None, type=None, price_per_night=None, features=None, tags=None, max_guests=None, environment=None):
+    if id is None and location is None and type is None and price_per_night is None and features is None and tags is None and max_guests is None and environment is None:
+        return None
     # TODO
     return
 
@@ -613,9 +626,6 @@ def cli(properties: list[Property], users: list[User]):
             if environment not in ENVIRONMENTS:
                 print("Invalid Environment")
                 environment = None
-
-
-
         user_input = ''
         features = []
         while user_input != "F":
@@ -859,23 +869,6 @@ class Llm:
             return msg
         except Exception as e:
             return {"error": "Request failed", "details": str(e)}
-
-        # Try to parse JSON content the model returned
-        #     try:
-        #         return json.loads(msg)
-        #     except json.JSONDecodeError:
-        #         # If the model included extra text, try to extract JSON loosely
-        #         # (basic fallback—students can improve later)
-        #         start = msg.find("{")
-        #         end = msg.rfind("}")
-        #         if start != -1 and end != -1 and end > start:
-        #             try:
-        #                 return json.loads(msg[start:end+1])
-        #             except json.JSONDecodeError:
-        #                 return {"error": "Model returned non-JSON content", "raw": msg}
-        #         return {"error": "Model returned non-JSON content", "raw": msg}
-        # except Exception as e:
-        #     return {"error": "Request failed", "details": str(e)}
 
 
 if __name__ == "__main__":
