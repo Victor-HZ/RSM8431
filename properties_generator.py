@@ -30,5 +30,4 @@ main.write_to_file(properties, users)
 
 p, u = main.load_from_file()
 
-u[0].score_properties(p)
 

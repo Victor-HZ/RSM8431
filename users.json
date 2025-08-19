@@ -1,31 +1,327 @@
 [
     {
-        "user_id": 101,
-        "name": "Alice",
-        "group_size": 4,
+        "user_id": 1,
+        "name": "UN: 1",
+        "group_size": 7,
+        "preferred_environment": [
+            "beach"
+        ],
+        "budget_range": [
+            108,
+            354
+        ],
+        "travel_date": "2025-08-19 12:57:09.324315"
+    },
+    {
+        "user_id": 2,
+        "name": "UN: 2",
+        "group_size": 6,
         "preferred_environment": [
             "lake"
         ],
         "budget_range": [
-            200,
-            300
+            71,
+            354
         ],
-        "travel_date": "2025-08-11 14:59:57.736168"
+        "travel_date": "2025-08-19 12:57:09.324353"
     },
     {
-        "user_id": 100,
-        "name": "Vic",
+        "user_id": 3,
+        "name": "UN: 3",
+        "group_size": 10,
+        "preferred_environment": [
+            "island"
+        ],
+        "budget_range": [
+            82,
+            157
+        ],
+        "travel_date": "2025-08-19 12:57:09.324375"
+    },
+    {
+        "user_id": 4,
+        "name": "UN: 4",
         "group_size": 9,
         "preferred_environment": [
-            "lake",
-            "ocean",
-            "mountain",
+            "city"
+        ],
+        "budget_range": [
+            134,
+            255
+        ],
+        "travel_date": "2025-08-19 12:57:09.324390"
+    },
+    {
+        "user_id": 5,
+        "name": "UN: 5",
+        "group_size": 3,
+        "preferred_environment": [
+            "suburban"
+        ],
+        "budget_range": [
+            78,
+            245
+        ],
+        "travel_date": "2025-08-19 12:57:09.324405"
+    },
+    {
+        "user_id": 6,
+        "name": "UN: 6",
+        "group_size": 6,
+        "preferred_environment": [
+            "rural"
+        ],
+        "budget_range": [
+            90,
+            344
+        ],
+        "travel_date": "2025-08-19 12:57:09.324419"
+    },
+    {
+        "user_id": 7,
+        "name": "UN: 7",
+        "group_size": 9,
+        "preferred_environment": [
+            "rural"
+        ],
+        "budget_range": [
+            148,
+            390
+        ],
+        "travel_date": "2025-08-19 12:57:09.324434"
+    },
+    {
+        "user_id": 8,
+        "name": "UN: 8",
+        "group_size": 1,
+        "preferred_environment": [
+            "ski"
+        ],
+        "budget_range": [
+            108,
+            173
+        ],
+        "travel_date": "2025-08-19 12:57:09.324448"
+    },
+    {
+        "user_id": 9,
+        "name": "UN: 9",
+        "group_size": 3,
+        "preferred_environment": [
+            "rural"
+        ],
+        "budget_range": [
+            84,
+            174
+        ],
+        "travel_date": "2025-08-19 12:57:09.324462"
+    },
+    {
+        "user_id": 10,
+        "name": "UN: 10",
+        "group_size": 9,
+        "preferred_environment": [
+            "beach"
+        ],
+        "budget_range": [
+            104,
+            264
+        ],
+        "travel_date": "2025-08-19 12:57:09.324476"
+    },
+    {
+        "user_id": 11,
+        "name": "UN: 11",
+        "group_size": 10,
+        "preferred_environment": [
+            "city"
+        ],
+        "budget_range": [
+            113,
+            224
+        ],
+        "travel_date": "2025-08-19 12:57:09.324490"
+    },
+    {
+        "user_id": 12,
+        "name": "UN: 12",
+        "group_size": 5,
+        "preferred_environment": [
+            "ski"
+        ],
+        "budget_range": [
+            132,
+            248
+        ],
+        "travel_date": "2025-08-19 12:57:09.324504"
+    },
+    {
+        "user_id": 13,
+        "name": "UN: 13",
+        "group_size": 1,
+        "preferred_environment": [
+            "lake"
+        ],
+        "budget_range": [
+            124,
+            261
+        ],
+        "travel_date": "2025-08-19 12:57:09.324518"
+    },
+    {
+        "user_id": 14,
+        "name": "UN: 14",
+        "group_size": 1,
+        "preferred_environment": [
+            "mountain"
+        ],
+        "budget_range": [
+            112,
+            186
+        ],
+        "travel_date": "2025-08-19 12:57:09.324532"
+    },
+    {
+        "user_id": 15,
+        "name": "UN: 15",
+        "group_size": 5,
+        "preferred_environment": [
+            "beach"
+        ],
+        "budget_range": [
+            126,
+            338
+        ],
+        "travel_date": "2025-08-19 12:57:09.324546"
+    },
+    {
+        "user_id": 16,
+        "name": "UN: 16",
+        "group_size": 9,
+        "preferred_environment": [
+            "mountain"
+        ],
+        "budget_range": [
+            84,
+            158
+        ],
+        "travel_date": "2025-08-19 12:57:09.324560"
+    },
+    {
+        "user_id": 17,
+        "name": "UN: 17",
+        "group_size": 3,
+        "preferred_environment": [
+            "ski"
+        ],
+        "budget_range": [
+            74,
+            309
+        ],
+        "travel_date": "2025-08-19 12:57:09.324574"
+    },
+    {
+        "user_id": 18,
+        "name": "UN: 18",
+        "group_size": 10,
+        "preferred_environment": [
+            "ski"
+        ],
+        "budget_range": [
+            88,
+            340
+        ],
+        "travel_date": "2025-08-19 12:57:09.324587"
+    },
+    {
+        "user_id": 19,
+        "name": "UN: 19",
+        "group_size": 3,
+        "preferred_environment": [
+            "mountain"
+        ],
+        "budget_range": [
+            109,
+            306
+        ],
+        "travel_date": "2025-08-19 12:57:09.324601"
+    },
+    {
+        "user_id": 20,
+        "name": "UN: 20",
+        "group_size": 1,
+        "preferred_environment": [
+            "suburban"
+        ],
+        "budget_range": [
+            96,
+            247
+        ],
+        "travel_date": "2025-08-19 12:57:09.324620"
+    },
+    {
+        "user_id": 21,
+        "name": "UN: 21",
+        "group_size": 2,
+        "preferred_environment": [
+            "suburban"
+        ],
+        "budget_range": [
+            141,
+            328
+        ],
+        "travel_date": "2025-08-19 12:57:09.324636"
+    },
+    {
+        "user_id": 22,
+        "name": "UN: 22",
+        "group_size": 10,
+        "preferred_environment": [
+            "beach"
+        ],
+        "budget_range": [
+            100,
+            203
+        ],
+        "travel_date": "2025-08-19 12:57:09.324650"
+    },
+    {
+        "user_id": 23,
+        "name": "UN: 23",
+        "group_size": 3,
+        "preferred_environment": [
             "desert"
         ],
         "budget_range": [
-            10,
-            9888
+            73,
+            211
         ],
-        "travel_date": "2025-08-11 23:37:21.008766"
+        "travel_date": "2025-08-19 12:57:09.324664"
+    },
+    {
+        "user_id": 24,
+        "name": "UN: 24",
+        "group_size": 6,
+        "preferred_environment": [
+            "desert"
+        ],
+        "budget_range": [
+            101,
+            256
+        ],
+        "travel_date": "2025-08-19 12:57:09.324678"
+    },
+    {
+        "user_id": 25,
+        "name": "UN: 25",
+        "group_size": 3,
+        "preferred_environment": [
+            "lake"
+        ],
+        "budget_range": [
+            118,
+            139
+        ],
+        "travel_date": "2025-08-19 12:57:09.324692"
     }
 ]

@@ -1,50 +1,437 @@
 [
-  {
-    "property_id": 1,
-    "location": "Lake Muskoka",
-    "type": "cabin",
-    "price_per_night": 180,
-    "features": [
-      "fireplace",
-      "canoe",
-      "bbq"
-    ],
-    "tags": [
-      "lakefront",
-      "family-friendly",
-      "nature"
-    ]
-  },
-  {
-    "property_id": 2,
-    "location": "Toronto Downtown",
-    "type": "condo",
-    "price_per_night": 220,
-    "features": [
-      "wifi",
-      "parking",
-      "gym"
-    ],
-    "tags": [
-      "urban",
-      "nightlife",
-      "business"
-    ]
-  },
-  {
-    "property_id": 3,
-    "location": "Blue Mountain",
-    "type": "chalet",
-    "price_per_night": 250,
-    "features": [
-      "ski-in",
-      "hot tub",
-      "fireplace"
-    ],
-    "tags": [
-      "skiing",
-      "luxury",
-      "mountains"
-    ]
-  }
+    {
+        "property_id": 1,
+        "location": "toronto downtown",
+        "property_type": "apartment",
+        "price_per_night": 479,
+        "features": [
+            "ev_charger",
+            "dryer",
+            "parking"
+        ],
+        "tags": [
+            "quiet",
+            "mountains"
+        ],
+        "max_guests": 2,
+        "environment": "island"
+    },
+    {
+        "property_id": 2,
+        "location": "wasaga beach",
+        "property_type": "apartment",
+        "price_per_night": 115,
+        "features": [
+            "pet_friendly",
+            "ev_charger"
+        ],
+        "tags": [
+            "mountains",
+            "pets"
+        ],
+        "max_guests": 9,
+        "environment": "desert"
+    },
+    {
+        "property_id": 3,
+        "location": "niagara-on-the-lake",
+        "property_type": "chalet",
+        "price_per_night": 401,
+        "features": [
+            "hot_tub",
+            "pool",
+            "canoe"
+        ],
+        "tags": [
+            "luxury",
+            "family-friendly",
+            "pets"
+        ],
+        "max_guests": 6,
+        "environment": "lake"
+    },
+    {
+        "property_id": 4,
+        "location": "toronto downtown",
+        "property_type": "bnb",
+        "price_per_night": 149,
+        "features": [
+            "garden",
+            "gym",
+            "fireplace"
+        ],
+        "tags": [
+            "mountains",
+            "beachfront",
+            "nightlife"
+        ],
+        "max_guests": 2,
+        "environment": "ski"
+    },
+    {
+        "property_id": 5,
+        "location": "prince edward county",
+        "property_type": "loft",
+        "price_per_night": 285,
+        "features": [
+            "pet_friendly",
+            "wifi",
+            "fireplace",
+            "patio"
+        ],
+        "tags": [
+            "luxury",
+            "beachfront"
+        ],
+        "max_guests": 4,
+        "environment": "lake"
+    },
+    {
+        "property_id": 6,
+        "location": "wasaga beach",
+        "property_type": "condo",
+        "price_per_night": 332,
+        "features": [
+            "garden",
+            "pool",
+            "dryer",
+            "washer"
+        ],
+        "tags": [
+            "quiet",
+            "luxury"
+        ],
+        "max_guests": 2,
+        "environment": "island"
+    },
+    {
+        "property_id": 7,
+        "location": "blue mountain",
+        "property_type": "cottage",
+        "price_per_night": 473,
+        "features": [
+            "pool",
+            "kayak"
+        ],
+        "tags": [
+            "luxury",
+            "quiet",
+            "mountains"
+        ],
+        "max_guests": 4,
+        "environment": "suburban"
+    },
+    {
+        "property_id": 8,
+        "location": "lake muskoka",
+        "property_type": "villa",
+        "price_per_night": 116,
+        "features": [
+            "beach access",
+            "gym",
+            "wifi"
+        ],
+        "tags": [
+            "romantic",
+            "urban"
+        ],
+        "max_guests": 4,
+        "environment": "forest"
+    },
+    {
+        "property_id": 9,
+        "location": "wasaga beach",
+        "property_type": "chalet",
+        "price_per_night": 173,
+        "features": [
+            "parking",
+            "ev_charger",
+            "gym"
+        ],
+        "tags": [
+            "romantic",
+            "nightlife",
+            "urban"
+        ],
+        "max_guests": 4,
+        "environment": "beach"
+    },
+    {
+        "property_id": 10,
+        "location": "ottawa",
+        "property_type": "chalet",
+        "price_per_night": 146,
+        "features": [
+            "kitchen",
+            "parking"
+        ],
+        "tags": [
+            "quiet",
+            "nightlife"
+        ],
+        "max_guests": 10,
+        "environment": "lake"
+    },
+    {
+        "property_id": 11,
+        "location": "wasaga beach",
+        "property_type": "bnb",
+        "price_per_night": 405,
+        "features": [
+            "washer",
+            "gym",
+            "hot_tub"
+        ],
+        "tags": [
+            "quiet",
+            "mountains"
+        ],
+        "max_guests": 5,
+        "environment": "suburban"
+    },
+    {
+        "property_id": 12,
+        "location": "toronto downtown",
+        "property_type": "condo",
+        "price_per_night": 322,
+        "features": [
+            "kayak",
+            "hot_tub"
+        ],
+        "tags": [
+            "mountains",
+            "family-friendly",
+            "nature"
+        ],
+        "max_guests": 2,
+        "environment": "rural"
+    },
+    {
+        "property_id": 13,
+        "location": "ottawa",
+        "property_type": "loft",
+        "price_per_night": 201,
+        "features": [
+            "garden",
+            "pool"
+        ],
+        "tags": [
+            "romantic",
+            "urban"
+        ],
+        "max_guests": 8,
+        "environment": "mountain"
+    },
+    {
+        "property_id": 14,
+        "location": "toronto downtown",
+        "property_type": "townhome",
+        "price_per_night": 257,
+        "features": [
+            "fireplace",
+            "ev_charger"
+        ],
+        "tags": [
+            "beachfront",
+            "business"
+        ],
+        "max_guests": 2,
+        "environment": "ski"
+    },
+    {
+        "property_id": 15,
+        "location": "blue mountain",
+        "property_type": "cabin",
+        "price_per_night": 437,
+        "features": [
+            "dryer",
+            "pool",
+            "gym"
+        ],
+        "tags": [
+            "pets",
+            "mountains",
+            "nature"
+        ],
+        "max_guests": 5,
+        "environment": "desert"
+    },
+    {
+        "property_id": 16,
+        "location": "collingwood",
+        "property_type": "chalet",
+        "price_per_night": 364,
+        "features": [
+            "kitchen",
+            "ev_charger",
+            "washer"
+        ],
+        "tags": [
+            "urban",
+            "lakefront"
+        ],
+        "max_guests": 10,
+        "environment": "ski"
+    },
+    {
+        "property_id": 17,
+        "location": "niagara-on-the-lake",
+        "property_type": "loft",
+        "price_per_night": 212,
+        "features": [
+            "wifi",
+            "fireplace"
+        ],
+        "tags": [
+            "beachfront",
+            "lakefront"
+        ],
+        "max_guests": 6,
+        "environment": "lake"
+    },
+    {
+        "property_id": 18,
+        "location": "ottawa",
+        "property_type": "villa",
+        "price_per_night": 242,
+        "features": [
+            "air conditioning",
+            "pet_friendly",
+            "parking",
+            "garden"
+        ],
+        "tags": [
+            "pets",
+            "business",
+            "nightlife"
+        ],
+        "max_guests": 4,
+        "environment": "lake"
+    },
+    {
+        "property_id": 19,
+        "location": "toronto downtown",
+        "property_type": "bnb",
+        "price_per_night": 281,
+        "features": [
+            "canoe",
+            "kayak",
+            "fireplace"
+        ],
+        "tags": [
+            "lakefront",
+            "nightlife"
+        ],
+        "max_guests": 6,
+        "environment": "lake"
+    },
+    {
+        "property_id": 20,
+        "location": "niagara-on-the-lake",
+        "property_type": "villa",
+        "price_per_night": 197,
+        "features": [
+            "kayak",
+            "parking",
+            "canoe",
+            "wifi"
+        ],
+        "tags": [
+            "business",
+            "pets",
+            "beachfront"
+        ],
+        "max_guests": 8,
+        "environment": "ski"
+    },
+    {
+        "property_id": 21,
+        "location": "toronto downtown",
+        "property_type": "apartment",
+        "price_per_night": 433,
+        "features": [
+            "hot_tub",
+            "wifi",
+            "ev_charger",
+            "washer"
+        ],
+        "tags": [
+            "business",
+            "nature",
+            "pets"
+        ],
+        "max_guests": 7,
+        "environment": "mountain"
+    },
+    {
+        "property_id": 22,
+        "location": "blue mountain",
+        "property_type": "bnb",
+        "price_per_night": 101,
+        "features": [
+            "gym",
+            "kayak",
+            "bbq"
+        ],
+        "tags": [
+            "nature",
+            "mountains",
+            "business"
+        ],
+        "max_guests": 3,
+        "environment": "city"
+    },
+    {
+        "property_id": 23,
+        "location": "prince edward county",
+        "property_type": "villa",
+        "price_per_night": 129,
+        "features": [
+            "dryer",
+            "fireplace",
+            "patio",
+            "hot_tub"
+        ],
+        "tags": [
+            "romantic",
+            "business"
+        ],
+        "max_guests": 9,
+        "environment": "ski"
+    },
+    {
+        "property_id": 24,
+        "location": "blue mountain",
+        "property_type": "apartment",
+        "price_per_night": 360,
+        "features": [
+            "pool",
+            "wifi"
+        ],
+        "tags": [
+            "quiet",
+            "pets"
+        ],
+        "max_guests": 7,
+        "environment": "lake"
+    },
+    {
+        "property_id": 25,
+        "location": "halifax",
+        "property_type": "villa",
+        "price_per_night": 396,
+        "features": [
+            "fireplace",
+            "wifi",
+            "canoe",
+            "patio"
+        ],
+        "tags": [
+            "luxury",
+            "pets",
+            "urban"
+        ],
+        "max_guests": 4,
+        "environment": "rural"
+    }
 ]

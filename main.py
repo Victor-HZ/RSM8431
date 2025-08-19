@@ -66,7 +66,7 @@ class Property:
         self.max_guests = max_guests
         self.environment = environment.strip().lower()
         if isinstance(features_list, str):
-            self.features = features_list.lower().strip()
+            self.features = [features_list.lower().strip()]
         else:
             self.features = [feature.lower().strip() for feature in features_list]
         if isinstance(tags_list, str):
@@ -609,6 +609,15 @@ def cli(properties: list[Property], users: list[User]):
         location = input("Enter Location: ")
         loc_type = input("Enter Type: ")
         price_per_night = float(input("Enter Price for Night: "))
+        max_guest = int(input("Enter Max Guests: "))
+        environment = None
+        while environment is None:
+            environment = input(f"Enter Environment from {ENVIRONMENTS}: ")
+            if environment not in ENVIRONMENTS:
+                print("Invalid Environment")
+                environment = None
+
+
 
         user_input = ''
         features = []
@@ -624,7 +633,7 @@ def cli(properties: list[Property], users: list[User]):
             if user_input != "F":
                 loc_tags.append(user_input)
 
-        return Property(property_id, location, loc_type, price_per_night, features, loc_tags)
+        return Property(property_id, location, loc_type, price_per_night, features, loc_tags, max_guest, environment)
 
     def view_property(properties: list[Property]):
         for prop in properties:
