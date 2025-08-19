@@ -402,8 +402,7 @@ class User:
         result = self._scoring_llm.llm_inquiry([property.get_dict() for property in properties])
         start = result.find("[") if "[" in result else result.find("{")
         end = result.rfind("]")
-        result = result[start:end + 1]
-        cleaned = result.replace("\n", "")
+        cleaned = result[start : end + 1].replace("\n", "")
 
         try:
             parsed = json.loads(cleaned)
@@ -430,7 +429,7 @@ class User:
         # 10 = mean of user's budget range
         # Z score normed in 0 - 10 for rest points
         budget_mean = sum(self.budget_range) / 2
-        budget_std = max(np.std(self.budget_range), 0.00001)
+        budget_std = max(np.std(self.budget_range), 0.01)
         properties_df["price score"] = np.clip(10 * (1 - abs((properties_df["price_per_night"] - budget_mean)/ budget_std)), 0, 10)
 
         # Capacity Score
@@ -744,11 +743,11 @@ def cli(properties: list[Property], users: list[User]):
             return properties
         target_id = id_list.index(int(user_input))
         top_properties = get_recommendation(users[target_id], properties).to_dict()
-        for i, id in enumerate(top_properties["property_id"], start=1):
+        for i, property_id in enumerate(top_properties["property_id"], start=1):
             print(f"Number {i}\n"
-                  f"{properties[top_properties['property_id'][id]]}\n"
-                  f"Property Score:\t   {round(top_properties['total score'][id], 2)}\n"
-                  f"Recommendation:\t   {top_properties['llm_recommendation'][id]}\n")
+                  f"{properties[top_properties['property_id'][property_id]]}\n"
+                  f"Property Score:\t   {round(top_properties['total score'][property_id], 2)}\n"
+                  f"Recommendation:\t   {top_properties['llm_recommendation'][property_id]}\n")
 
 
         return users
