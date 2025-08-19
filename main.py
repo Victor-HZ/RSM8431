@@ -420,7 +420,7 @@ class User:
 
     def _llm_scoring(self, properties: list[Property]):
 
-        result = self._scoring_llm.llm_inquiry([property.get_dict() for property in properties])
+        result = self._scoring_llm.llm_inquiry([prop.get_dict() for prop in properties])
         start = result.find("[") if "[" in result else result.find("{")
         end = result.rfind("]")
         cleaned = result[start : end + 1].replace("\n", "")
@@ -522,7 +522,7 @@ def load_from_file() -> tuple[list[Property], list[User]]:
 
 def write_to_file(properties: list[Property], users: list[User]) -> bool:
     try:
-        properties_list = [property.get_dict() for property in properties]
+        properties_list = [prop.get_dict() for prop in properties]
         users_list = [user.get_dict() for user in users]
         with open("properties.json", "w") as file:
             json.dump(properties_list, file, default=str, indent=4)
@@ -541,21 +541,46 @@ def properties_to_df(properties: list[Property]) -> pd.DataFrame:
     type_dummy = pd.get_dummies(df['property_type'], prefix='type')
     features_dummies = pd.get_dummies(df['features'].explode(), prefix='features').groupby(level=0).max()
     tags_dummies = pd.get_dummies(df['tags'].explode(), prefix='tags').groupby(level=0).max()
-    return pd.concat([df.drop(columns=['property_type', 'environment','features', 'tags']), env_dummy, type_dummy, features_dummies, tags_dummies], axis=1)
+    return pd.concat([df.drop(columns=['property_type', 'environment','features', 'tags']), env_dummy, type_dummy,
+                      features_dummies, tags_dummies], axis=1)
 
 
-def search_user(id=None, name=None, group_size=None, preferred_environment=None, budget_range=None, travel_date=None):
-    if id is None and name is None and group_size is None and preferred_environment is None and budget_range is None and travel_date is None:
-        return None
-    # TODO
-    return
+def search_user(users: list[User], uid: int = None, name: str = None, group_size: int = None, preferred_environment: list[str] = None,
+                budget: int = None, travel_date: datetime = None):
+    if uid is None and name is None and group_size is None and preferred_environment is None and budget is None and travel_date is None:
+        return users
+    result = []
+    for user in users:
+        if ((uid is None or user.get_id() == uid) and (name is None or user.get_name() == name)
+                and (group_size is None or user.get_group_size() == group_size)
+                and (preferred_environment is None or
+                     len([env for env in preferred_environment if env in user.get_preferred_environment()])>0)
+                and (budget is None or user.get_budget_range()[0] <= budget <= user.get_budget_range()[1])
+                and (travel_date is None or user.get_travel_date() == travel_date)):
+            result.append(user)
+    return result
 
 
-def search_property(id=None, location=None, type=None, price_per_night=None, features=None, tags=None, max_guests=None, environment=None):
-    if id is None and location is None and type is None and price_per_night is None and features is None and tags is None and max_guests is None and environment is None:
-        return None
-    # TODO
-    return
+def search_property(properties: list[Property], property_id: int = None, location: str =None, property_type: str=None, price_per_night: float=None,
+                    features: list[str]=None, tags: list[str]=None, max_guests: int=None, environment: str=None):
+    if (property_id is None and location is None and property_type is None and price_per_night is None and features is None and tags is None
+            and max_guests is None and environment is None):
+        return properties
+    if isinstance(features, str):
+        features = [features]
+    if isinstance(tags, str):
+        tags = [tags]
+    result = []
+    for prop in properties:
+        if ((property_id is None or prop.get_id() == property_id) and (location is None or prop.get_location() == location)
+                and (property_type is None or prop.get_type() == property_type)
+                and (price_per_night is None or prop.get_price_per_night() <= price_per_night)
+                and (features is None or len([feature for feature in features if feature in prop.get_features()]) == len(features))
+                and (tags is None or len([tag for tag in tags if tag in prop.get_tags()]) == len(tags))
+                and (max_guests is None or prop.get_max_guests() == max_guests)
+                and (environment is None or prop.get_environment() == environment)):
+            result.append(prop)
+    return result
 
 
 def get_recommendation(user: User, properties: list[Property]):
