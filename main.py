@@ -5,13 +5,13 @@ import json, requests, getpass
 import numpy as np
 import pandas as pd
 
-ENVIRONMENTS = ["mountain","lake","beach","city","rural","suburban","desert","forest","ski","island"]
-PROPERTY_TYPES = ["apartment","house","cabin","villa","condo","townhome","bnb", "chalet", "cottage", "loft"]
-FEATURES = ["hot_tub","fireplace","wifi","kitchen","parking","pool","pet_friendly","ev_charger", "gym", "bbq",
+environments_pool = ["mountain", "lake", "beach", "city", "rural", "suburban", "desert", "forest", "ski", "island"]
+types_pool = ["apartment", "house", "cabin", "villa", "condo", "townhome", "bnb", "chalet", "cottage", "loft"]
+features_pool = ["hot_tub", "fireplace", "wifi", "kitchen", "parking", "pool", "pet_friendly", "ev_charger", "gym", "bbq",
             "patio", "garden", "beach access", "canoe", "kayak", "air conditioning", "washer", "dryer"]
-LOCATIONS = ["Lake Muskoka", "Toronto Downtown", "Blue Mountain","Niagara-on-the-Lake", "Prince Edward County",
+locations_pool = ["Lake Muskoka", "Toronto Downtown", "Blue Mountain", "Niagara-on-the-Lake", "Prince Edward County",
              "Collingwood", "Wasaga Beach", "Kingston", "Ottawa", "Halifax"]
-TAGS_POOL = ["lakefront", "beachfront", "family-friendly", "pets", "luxury", "urban", "nightlife", "business",
+tags_pool = ["lakefront", "beachfront", "family-friendly", "pets", "luxury", "urban", "nightlife", "business",
              "mountains", "romantic", "quiet", "nature"]
 
 
@@ -33,7 +33,7 @@ class Property:
         ValueError: If the property type, environment, or features are invalid.
     """
 
-    def __init__(self, property_id: int, location: str, property_type: str, price_per_night: float, features_list: list[str],
+    def __init__(self, property_id: int, location: str, property_type: str, price_per_night: float, features: list[str],
                  tags_list: list[str], max_guests: int, environment: str):
         """
         Initialize a new Property instance.
@@ -43,7 +43,7 @@ class Property:
             location (str): Location of the property.
             property_type (str): Type of the property (must be in PROPERTY_TYPES).
             price_per_night (float): Price per night.
-            features_list (list[str]): Features provided by the property.
+            features (list[str]): Features provided by the property.
             tags_list (list[str]): Tags describing the property.
             max_guests (int): Maximum allowed guests.
             environment (str): Environment (must be in ENVIRONMENTS).
@@ -57,22 +57,22 @@ class Property:
         self.price_per_night = price_per_night
         self.max_guests = max_guests
         self.environment = environment.strip().lower()
-        if isinstance(features_list, str):
-            self.features = [features_list.lower().strip()]
+        if isinstance(features, str):
+            self.features = [features.lower().strip()]
         else:
-            self.features = [feature.lower().strip() for feature in features_list]
+            self.features = [feature.lower().strip() for feature in features]
         if isinstance(tags_list, str):
             self.tags = [tags_list.lower().strip()]
         else:
             self.tags = [tag.lower().strip() for tag in tags_list]
 
-        if self.property_type not in PROPERTY_TYPES:
-            raise ValueError(f"Property type {self.property_type} is not supported.")
-        if self.environment not in ENVIRONMENTS:
-            raise ValueError(f"Environment {self.environment} is not supported.")
-        unknown = [feature for feature in self.features if feature not in FEATURES]
-        if unknown:
-            raise ValueError(f"Unknown features {self.features}.")
+        update_features_pool(self.features)
+        update_tags_pool(self.tags)
+        update_environments_pool(self.environment)
+        update_features_pool(self.features)
+        update_tags_pool(self.tags)
+
+
 
 
     def __str__(self):
@@ -138,8 +138,8 @@ class Property:
             ValueError: If property_type is invalid.
         """
         self.property_type = property_type
-        if self.property_type not in PROPERTY_TYPES:
-            raise ValueError(f"Property type {self.property_type} is not supported.")
+        if self.property_type not in types_pool:
+            types_pool.append(self.property_type)
 
     def update_price_per_night(self, price_per_night: float):
         """
@@ -173,9 +173,12 @@ class Property:
         if isinstance(tags, str):
             self.tags = [tags.strip().lower()]
         self.tags = [tag.strip().lower() for tag in tags]
-        unknown = [tag for tag in tags if not isinstance(tag, str)]
-        if unknown:
+        wrong_type = [tag for tag in tags if not isinstance(tag, str)]
+        tags_pool.extend(wrong_type)
+        if wrong_type:
             raise ValueError("Tags must be a list of strings.")
+        tags_pool.extend([tag for tag in tags if tag not in tags_pool])
+
 
     def update_max_guests(self, max_guests: int):
         """
@@ -203,9 +206,7 @@ class Property:
         if not isinstance(features, list):
             raise ValueError("Features must be a list.")
         self.features = [feature.strip().lower() for feature in features]
-        unknown = [feature for feature in self.features if feature not in FEATURES]
-        if unknown:
-            raise ValueError(f"Unknown features {self.features}.")
+        features_pool.extend([feature for feature in self.features if feature not in features_pool])
 
     def update_environment(self, environment: str):
         """
@@ -218,8 +219,8 @@ class Property:
             ValueError: If the environment is invalid.
         """
         self.environment = environment.strip().lower()
-        if  self.environment not in ENVIRONMENTS:
-            raise ValueError(f"Environment {self.environment} is not supported.")
+        if  self.environment not in environments_pool:
+            environments_pool.append(self.environment)
 
     def get_id(self):
         """
@@ -314,10 +315,7 @@ class User:
             self.preferred_environment = [preferred_environment.strip().lower()]
         else:
             self.preferred_environment = preferred_environment
-        unknown_env = [env for env in self.preferred_environment if env not in ENVIRONMENTS]
-        if unknown_env:
-            raise ValueError(f"Unknown preferred environment {self.preferred_environment} is not supported.")
-
+        environments_pool.extend([env for env in self.preferred_environment if env not in environments_pool])
         self.budget_range = min(budget_range), max(budget_range)
         self.travel_date = travel_date
         self._weighted_score = {
@@ -396,7 +394,7 @@ class User:
             self.preferred_environment = [preferred_environment.strip().lower()]
         elif isinstance(preferred_environment, list):
             self.preferred_environment = [env.strip().lower() for env in preferred_environment]
-        unknown_env = [env for env in self.preferred_environment if env not in ENVIRONMENTS]
+        unknown_env = [env for env in self.preferred_environment if env not in environments_pool]
         if unknown_env:
             raise ValueError(f"Unknown preferred environment {self.preferred_environment} is not supported.")
 
@@ -462,7 +460,7 @@ class User:
 
         # Feature Abundancy
 
-        properties_df["feature score"] = sum(properties_df["features_" + token] for token in FEATURES)
+        properties_df["feature score"] = sum(properties_df["features_" + token] for token in features_pool)
 
         # LLM Score
         llm_score_df = self._llm_scoring(properties).add_prefix("llm_").rename(columns={"llm_property_id": "property_id"})
@@ -590,6 +588,32 @@ def get_recommendation(user: User, properties: list[Property]):
     else:
         return result.nlargest(result.shape[0], "total score")
 
+def update_environments_pool(environment: list[str] | str):
+    if isinstance(environment, str):
+        environment = [environment.strip().lower()]
+    environments_pool.extend([env for env in environment if env not in environments_pool])
+
+def update_tags_pool(tag: list[str] | str):
+    if isinstance(tag, str):
+        tag = [tag.strip().lower()]
+    tags_pool.extend([tag for tag in tag if tag not in tags_pool])
+
+def update_features_pool(feature: list[str] | str):
+    if isinstance(feature, str):
+        feature = [feature.strip().lower()]
+    features_pool.extend([feature for feature in feature if feature not in features_pool])
+
+def update_locations_pool(locations: list[str] | str):
+    if isinstance(locations, str):
+        locations = [locations.strip().lower()]
+    locations_pool.extend([location for location in locations if location not in locations_pool])
+
+def update_types_pool(types: list[str] | str):
+    if isinstance(types, str):
+        types = [types.strip().lower()]
+    types_pool.extend([type for type in types if type not in types_pool])
+
+
 
 def gui(properties: list[Property], users: list[User]):
     # TODO
@@ -647,8 +671,8 @@ def cli(properties: list[Property], users: list[User]):
         max_guest = int(input("Enter Max Guests: "))
         environment = None
         while environment is None:
-            environment = input(f"Enter Environment from {ENVIRONMENTS}: ")
-            if environment not in ENVIRONMENTS:
+            environment = input(f"Enter Environment from {environments_pool}: ")
+            if environment not in environments_pool:
                 print("Invalid Environment")
                 environment = None
         user_input = ''
@@ -821,8 +845,7 @@ def cli(properties: list[Property], users: list[User]):
 
 def main():
     # Main loop for CLI
-    properties = []
-    users = []
+    properties, users = load_from_file()
     while True:
         print(f"------------ Display Menu ------------ \n"
               f"1. CLI \n"
