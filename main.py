@@ -103,8 +103,7 @@ class Property:
                 f"Max guests: {self.max_guests}\n"
                 f"Nightly Price: {self.price_per_night}\n"
                 f"{feature_list}\n"
-                f"{tag_list}\n"
-                f"--------------------------------------\n\n")
+                f"{tag_list}\n")
 
     def get_dict(self):
         """
@@ -314,21 +313,22 @@ class User:
             "features": .15,
             "llm": .15,
         }
-        self.llm_api = get_api()
-        self.llm_url = "https://openrouter.ai/api/v1/chat/completions"
-        self.llm_model = "openai/gpt-4o"
+        self._llm_api = get_api()
+        self._llm_url = "https://openrouter.ai/api/v1/chat/completions"
+        self._llm_model = "openai/gpt-4o"
         json_format = "[{\"property_id\", \"score\", \"recommendation\"},]"
         self.system_prompt = (f"You are an assistant for an Airbnb-like vacation property search. "
-                         f"The user has following requirements for the desired property:\n"
-                         f"1. group size: {self.group_size}\n"
-                         f"2. preferred environment: {self.preferred_environment}\n"
-                         f"3. budget range: {self.budget_range}\n"
-                         f"You will be provide a list of properties , return a JSON object with "
-                         f"1. the property id from the provided list, 2. the score of each property from 1 to 10, "
-                         f"and 3. a simple recommendation for the property to the user within 75 words.\n"
-                         f"Only return valid JSON with following structure that includes all provided property: {json_format} without newline"
-                         f"Do not omit any property")
-        self.scoring_llm = Llm(self.llm_api, self.llm_model, self.llm_url, self.system_prompt)
+                              f"The user has following requirements for the desired property:\n"
+                              f"1. group size: {self.group_size}\n"
+                              f"2. preferred environment: {self.preferred_environment}\n"
+                              f"3. budget range: {self.budget_range}\n"
+                              f"4. travel date: {self.travel_date}\n"
+                              f"You will be provide a list of properties , return a JSON object with "
+                              f"1. the property id from the provided list, 2. the score of each property from 1 to 10, "
+                              f"and 3. a simple recommendation for the property to the user within 75 words.\n"
+                              f"Only return valid JSON with following structure that includes all provided property: {json_format}"
+                              f"Do not omit any property")
+        self._scoring_llm = Llm(self._llm_api, self._llm_model, self._llm_url, self.system_prompt)
 
         unknown_env = [env for env in self.preferred_environment if env not in ENVIRONMENTS]
         if unknown_env:
@@ -400,15 +400,15 @@ class User:
 
     def llm_scoring(self, properties: list[Property]):
 
-        result = self.scoring_llm.llm_inquiry([property.get_dict() for property in properties])
+        result = self._scoring_llm.llm_inquiry([property.get_dict() for property in properties])
         if result.startswith("```"):
-            start = result.find("{") if "{" in result else result.find("[")
-            end = result.rfind("}")
+            start = result.find("[") if "[" in result else result.find("{")
+            end = result.rfind("]")
             result = result[start:end + 1]
-            result = result.replace("\n", "")
+            cleaned = result.replace("\n", "")
 
         try:
-            parsed = json.loads(result)
+            parsed = json.loads(cleaned)
         except json.JSONDecodeError:
             raise ValueError("LLM output is not valid JSON")
 
@@ -516,6 +516,7 @@ def write_to_file(properties: list[Property], users: list[User]) -> bool:
     except FileNotFoundError:
         return False
 
+
 def properties_to_df(properties: list[Property]) -> pd.DataFrame:
     df = pd.DataFrame([
         prop.get_dict() for prop in properties
@@ -547,12 +548,12 @@ def filter_property():
     return
 
 
-def get_recommendation():
-    return
-
-
-def llm_summary():
-    return
+def get_recommendation(user: User, properties: list[Property]):
+    result = user.score_properties(properties)
+    if result.shape[0] >= 5:
+        return result.nlargest(5, "total score")
+    else:
+        return result.nlargest(result.shape[0], "total score")
 
 
 def gui(properties: list[Property], users: list[User]):
@@ -728,9 +729,22 @@ def cli(properties: list[Property], users: list[User]):
             case "7":
                 return users
         return users
+    def get_top(users: list[User], properties: list[Property]):
+        id_list = [user.get_id() for user in users]
+        print("User IDs: ", id_list)
+        user_input = input("Enter User to Generate Recommendation, F to dismiss: ")
+        if user_input == "F":
+            return properties
+        target_id = id_list.index(int(user_input))
+        top_properties = get_recommendation(users[target_id], properties).to_dict()
+        for i, id in enumerate(top_properties["property_id"], start=1):
+            print(f"Number {i}\n"
+                  f"{properties[top_properties['property_id'][id]]}\n"
+                  f"Property Score:\t   {round(top_properties['total score'][id], 2)}\n"
+                  f"Recommendation:\t   {top_properties['llm_recommendation'][id]}\n")
+
 
         return users
-
     # Main CLI Loop
     while True:
         print(f"-------------------- Main Menu --------------------\n"
@@ -738,7 +752,7 @@ def cli(properties: list[Property], users: list[User]):
               f"3. View properties  \t 4. View users\n"
               f"5. Edit user        \t 6. Edit property\n"
               f"7. Load from file   \t 8. Save to file\n"
-              f"9. Get recommendations \t 10. LLM summary\n"
+              f"9. Get recommendations \t 10. Exit\n"
               f"11. Exit\n")
         user_input = input("Enter your choice: ")
         match user_input:
@@ -759,10 +773,8 @@ def cli(properties: list[Property], users: list[User]):
             case "8":
                 write_to_file(properties, users)
             case "9":
-                get_recommendation()
+                get_top(users, properties)
             case "10":
-                llm_summary()
-            case "11":
                 exit()
 
 
@@ -781,10 +793,6 @@ def main():
             case "2":
                 gui(properties, users)
         print("Invalid input")
-
-
-if __name__ == "__main__":
-    main()
 
 def get_api():
     return os.getenv("api_key")
@@ -861,100 +869,6 @@ class Llm:
         # except Exception as e:
         #     return {"error": "Request failed", "details": str(e)}
 
-#
-# ###############################################################################################
-# # API Call Code from JSON_Tutorial, to be paraphrased.
-# # API Key is implemented without the requirement of user input. To be removed before submission
-# ###############################################################################################
-#
-# # --- Load properties ---
-# with open("properties.json", "r") as f:
-#     properties = json.load(f)
-#
-# # --- Get API key safely (won't echo in Colab) ---
-# # API_KEY = getpass.getpass("Enter your OpenRouter API key: ").strip()
-# API_KEY = "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"
-# # Pick a DeepSeek model available on OpenRouter.
-# # Common ones include (names can change over time):
-# # - "deepseek/deepseek-chat"
-# # - "deepseek/deepseek-r1"
-# MODEL = "deepseek/deepseek-chat-v3-0324:free"
-#
-# URL = "https://openrouter.ai/api/v1/chat/completions"
-# HEADERS = {
-#     "Authorization": f"Bearer {API_KEY}",
-#     "Content-Type": "application/json",
-# }
-#
-# SYSTEM_PROMPT = (
-#     "You are an assistant for an Airbnb-like vacation property search. "
-#     "Given a list of properties (JSON) and a user request, return either: "
-#     "(1) a JSON object with `tags` (list of strings) inferred from the request, and "
-#     "(2) optionally `property_ids` (list of integers) that might match. "
-#     "Only return valid JSON."
-# )
-#
-# def llm_search(user_prompt: str, model: str = MODEL) -> dict:
-#     """Call OpenRouter and return a parsed dict. On error, return {'error': '...'}."""
-#     payload = {
-#         "model": model,
-#         "messages": [
-#             {"role": "system", "content": SYSTEM_PROMPT},
-#             {
-#                 "role": "user",
-#                 "content": (
-#                     "PROPERTIES:\n" + json.dumps(properties) +
-#                     "\n\nUSER REQUEST:\n" + user_prompt +
-#                     "\n\nRespond with JSON: {\"tags\": [...], \"property_ids\": [...]} (property_ids optional)"
-#                 ),
-#             },
-#         ],
-#         # Safety/time controls (optional):
-#         "temperature": 0.2,
-#     }
-#     try:
-#         r = requests.post(URL, headers=HEADERS, json=payload, timeout=60)
-#         # Helpful debug if something goes wrong
-#         if r.status_code != 200:
-#             return {"error": f"HTTP {r.status_code}", "details": r.text}
-#         data = r.json()
-#         # Expected shape: data["choices"][0]["message"]["content"]
-#         msg = (data.get("choices") or [{}])[0].get("message", {}).get("content")
-#         if not msg:
-#             return {"error": "No content in response", "details": data}
-#         # Try to parse JSON content the model returned
-#         try:
-#             return json.loads(msg)
-#         except json.JSONDecodeError:
-#             # If the model included extra text, try to extract JSON loosely
-#             # (basic fallback—students can improve later)
-#             start = msg.find("{")
-#             end = msg.rfind("}")
-#             if start != -1 and end != -1 and end > start:
-#                 try:
-#                     return json.loads(msg[start:end+1])
-#                 except json.JSONDecodeError:
-#                     return {"error": "Model returned non-JSON content", "raw": msg}
-#             return {"error": "Model returned non-JSON content", "raw": msg}
-#     except Exception as e:
-#         return {"error": "Request failed", "details": str(e)}
-#
-# # --- Mini chatbot loop ---
-# print("Vacation Property Bot (type 'exit' to quit)")
-# while True:
-#     prompt = input("You: ").strip()
-#     if prompt.lower() == "exit":
-#         print("Bot: Have a great vacation!")
-#         break
-#     result = llm_search(prompt)
-#     if "error" in result:
-#         print("Bot (error):", result["error"])
-#         if "details" in result:
-#             print("Details:", result["details"])
-#         elif "raw" in result:
-#             print("Raw output:", result["raw"])
-#     else:
-#         tags = result.get("tags", [])
-#         prop_ids = result.get("property_ids", [])
-#         print("Bot: tags =", tags)
-#         print("Bot: property_ids =", prop_ids)
+
+if __name__ == "__main__":
+    main()
