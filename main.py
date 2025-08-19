@@ -5,6 +5,10 @@ import numpy
 import numpy as np
 import pandas as pd
 
+import tkinter as tk
+from tkinter import messagebox
+from tkinter import ttk
+
 ENVIRONMENTS = ("mountain","lake","beach","city","rural","suburban","desert","forest","ski","island")
 PROPERTY_TYPES = ("apartment","house","cabin","villa","condo","townhome","bnb", "chalet", "cottage", "loft")
 FEATURES = ("hot_tub","fireplace","wifi","kitchen","parking","pool","pet_friendly","ev_charger", "gym", "bbq",
@@ -538,6 +542,350 @@ def gui(properties: list[Property], users: list[User]):
 
     return
 
+########################################################################################################################
+class GUI:
+    def __init__(self):
+        self.root = tk.Tk()
+        self.root.title("Simple Airbnb") # change title
+        self.root.geometry("500x500")
+
+        self.main_menu()
+
+    def main_menu(self):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        self.label = tk.Label(self.root, text="Welcome to Simple Airbnb! Please select an option: \n\n Main Menu")
+        self.label.pack(pady=10)
+
+        self.listbox = tk.Listbox(self.root, width=40, height=15)
+        self.listbox.pack()
+
+        list_of_options = ["1. Create a new user", "2. Create a new property", "3. View properties",
+                          "4. View users", "5. Edit user", "6. Edit property", "7. Load from file",
+                          "8. Save to file", "9. Get recommendations", "10. LLM summary", "11. Exit"]
+        for item in list_of_options:
+            self.listbox.insert(tk.END, item)
+
+        self.entry = tk.Entry(self.root, width=30)
+        self.entry.pack(pady=10)
+
+        self.button = tk.Button(self.root, text="Enter", command=self.redirect_input)
+        self.button.pack(pady=20)
+
+    def redirect_input(self):
+        try:
+            user_input = int(self.entry.get())
+        except ValueError:
+            messagebox.showinfo("Error", "Please enter a valid number.")
+            self.entry.delete(0, tk.END)
+            return
+
+        if user_input == 1:
+            self.create_user()
+        elif user_input == 2:
+            self.create_property()
+        elif user_input == 3:
+            self.view_property(properties_file)
+        elif user_input == 4:
+            self.view_user(users_file)
+        elif user_input == 5:
+            self.edit_user(users_file)
+        elif user_input == 6: 
+            self.edit_property(properties_file)
+        elif user_input == 7: # load from file
+            pass
+        elif user_input == 8: # save from file
+            pass
+        elif user_input == 9: # get recommendation
+            pass
+        elif user_input == 10: # llm summary
+            pass
+        elif user_input == 11: # exit
+            pass
+
+    def run(self):
+        self.root.mainloop()
+
+    # collects user entries and adds label
+    def user_entry(self, label):
+        tk.Label(self.root, text=label).pack()
+        user_entry = tk.Entry(self.root)
+        user_entry.pack()
+        return user_entry
+
+    # user entry labels
+    # it's more difficult to do the one by one entries like the cli so its all in one form rn for the gui
+    def create_user(self):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        tk.Label(self.root, text="Create User").pack(pady=5)
+
+        self.user_id_entry = self.user_entry("User ID:")
+        self.name_entry = self.user_entry("Name:")
+        self.group_size_entry = self.user_entry("Group Size:")
+        self.env_entry = self.user_entry("Preferred Environment (comma separated):")
+        self.budget_low_entry = self.user_entry("Lower Budget Range:")
+        self.budget_high_entry = self.user_entry("Upper Budget Range:")
+        self.date_entry = self.user_entry("Travel Date (YYYY-MM-DD HH:MM:SS.FF), N for today:")
+
+        tk.Button(self.root, text="Save", command=self.submit_user).pack(pady=10)
+
+    # create a new user - for button to work (same format as CLI)
+    def submit_user(self):
+        user_id = int(self.user_id_entry.get())
+        name = str(self.name_entry.get())
+        group_size = int(self.group_size_entry.get())
+        preferred_environment = [i.strip() for i in self.env_entry.get().split(",")]
+        budget_range = (int(self.budget_low_entry.get()), int(self.budget_high_entry.get()))
+        travel_date_input = str(self.date_entry.get())
+        if travel_date_input == "N":
+            travel_date = datetime.now()
+        else:
+            travel_date = datetime.strptime(travel_date_input, "%Y-%m-%d %H:%M:%S.%f")
+
+        User(user_id, name, group_size, preferred_environment, budget_range, travel_date)
+
+        messagebox.showinfo("Simple Airbnb", "User has been saved!")
+
+        self.main_menu()
+
+    def create_property(self):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        tk.Label(self.root, text="Create User").pack(pady=5)
+
+        self.property_id_entry = self.user_entry("Property ID:")
+        self.location_entry = self.user_entry("Location:")
+        self.type_entry = self.user_entry("Type:")
+        self.price_entry = self.user_entry("Price for Night:")
+        self.max_guests_entry = self.user_entry("Maximum Number of Guests:")
+        self.features_entry = self.user_entry("Features:")
+        self.tags_entry = self.user_entry("Tags:")
+        self.environment_entry = self.user_entry("Environment:")
+
+        tk.Button(self.root, text="Enter", command=self.submit_property).pack(pady=10)
+
+    def submit_property(self):
+        property_id = self.property_id_entry.get()
+        location = self.location_entry.get()
+        loc_type = self.type_entry.get()
+        price_per_night = self.price_entry.get()
+        max_guests = self.max_guests_entry.get()
+        features = [i.strip() for i in self.features_entry.get().split(",")]
+        loc_tags = [i.strip() for i in self.tags_entry.get().split(",")]
+        env = self.environment_entry.get()
+
+        Property(property_id, location, loc_type, price_per_night, features, loc_tags, max_guests, env)
+
+        messagebox.showinfo("Simple Airbnb", "Property has been saved!")
+
+        self.main_menu()
+
+    def view_property(self, properties):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        properties_df = pd.DataFrame(properties)
+
+        button_frame = tk.Frame(self.root)
+        button_frame.pack(pady=20)
+
+        one_property = tk.Button(button_frame, text="I know my Property ID", command=lambda: self.view_one_property(properties_df))
+        one_property.pack(side="left", padx=10)
+
+        all_property = tk.Button(button_frame, text="View All", command=lambda: self.view_all_property(properties_df))
+        all_property.pack(side="right", padx=10)
+
+    def view_one_property(self, properties):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        self.selected_property_id = self.user_entry("Please enter Property ID:")
+        tk.Button(self.root, text="Enter", command=lambda: self.get_property_id(properties)).pack(pady=10)
+
+    def get_property_id(self, properties):
+        self.ID = int(self.selected_property_id.get())
+        selected_property = properties[properties["property_id"]==self.ID]
+
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        self.tree = ttk.Treeview(self.root)
+        self.tree.pack(fill="both", expand=True)
+
+        self.tree["columns"] = list(selected_property.columns)
+        self.tree["show"] = "headings"
+
+        for col in selected_property.columns:
+            self.tree.heading(col, text=col)
+            self.tree.column(col, width=100)
+
+        for _, row in selected_property.iterrows():
+            self.tree.insert("", "end", values=list(row))
+
+        tk.Button(self.root, text="Main Menu", command=self.main_menu).pack(pady=10)
+
+    # note: can't wrap text in treeview
+    def view_all_property(self, properties):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        self.tree = ttk.Treeview(self.root)
+        self.tree.pack(fill="both", expand=True)
+
+        self.tree["columns"] = list(properties.columns)
+        self.tree["show"] = "headings"
+
+        for col in properties.columns:
+            self.tree.heading(col, text=col)
+            self.tree.column(col, width=100)
+
+        for _, row in properties.iterrows():
+            self.tree.insert("", "end", values=list(row))
+
+        tk.Button(self.root, text="Main Menu", command=self.main_menu).pack(pady=10)
+
+    def view_user(self, users):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        users_df = pd.DataFrame(users)
+
+        button_frame = tk.Frame(self.root)
+        button_frame.pack(pady=20)
+
+        one_property = tk.Button(button_frame, text="I know my User ID", command=lambda: self.view_one_user(users_df))
+        one_property.pack(side="left", padx=10)
+
+        all_property = tk.Button(button_frame, text="View All", command=lambda: self.view_all_user(users_df))
+        all_property.pack(side="right", padx=10)
+
+    def view_one_user(self, users):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        self.selected_user_id = self.user_entry("Please enter User ID:")
+        tk.Button(self.root, text="Enter", command=lambda: self.get_user_id(users)).pack(pady=10)
+
+    def get_user_id(self, users):
+        self.ID = int(self.selected_user_id.get())
+        selected_user = users[users["user_id"] == self.ID]
+
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        self.tree = ttk.Treeview(self.root)
+        self.tree.pack(fill="both", expand=True)
+
+        self.tree["columns"] = list(selected_user.columns)
+        self.tree["show"] = "headings"
+
+        for col in selected_user.columns:
+            self.tree.heading(col, text=col)
+            self.tree.column(col, width=100)
+
+        for _, row in selected_user.iterrows():
+            self.tree.insert("", "end", values=list(row))
+
+        tk.Button(self.root, text="Main Menu", command=self.main_menu).pack(pady=10)
+
+    def view_all_user(self, users):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        self.tree = ttk.Treeview(self.root)
+        self.tree.pack(fill="both", expand=True)
+
+        self.tree["columns"] = list(users.columns)
+        self.tree["show"] = "headings"
+
+        for col in users.columns:
+            self.tree.heading(col, text=col)
+            self.tree.column(col, width=100)
+
+        for _, row in users.iterrows():
+            self.tree.insert("", "end", values=list(row))
+
+        tk.Button(self.root, text="Main Menu", command=self.main_menu).pack(pady=10)
+
+    def edit_property(self, properties):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        properties_df = pd.DataFrame(properties)
+
+        tk.Label(self.root, text="Edit Property").pack(pady=5)
+
+        self.editing_property_id = self.user_entry("Please enter Property ID:")
+        tk.Button(self.root, text="Enter", command=lambda: self.edit_property_values(properties_df)).pack(pady=10)
+
+    def edit_property_values(self, properties):
+        edit_property = properties[properties["property_id"] == int(self.editing_property_id.get())]
+        property_row = edit_property.iloc[0]
+
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        self.property_id_entry = self.user_entry("Property ID:")
+        self.location_entry = self.user_entry("Location:")
+        self.type_entry = self.user_entry("Type:")
+        self.price_entry = self.user_entry("Price for Night:")
+        self.max_value_entry = self.user_entry("Max Value:")
+        self.features_entry = self.user_entry("Features:")
+        self.tags_entry = self.user_entry("Tags:")
+        self.environment_entry = self.user_entry("Environment:")
+
+        self.property_id_entry.insert(0, str(property_row["property_id"]))
+        self.location_entry.insert(0, str(edit_property["location"]))
+        self.type_entry.insert(0, str(edit_property["type"]))
+        self.price_entry.insert(0, str(property_row["price_per_night"]))
+        self.max_value_entry.insert(0, str(property_row["max_value"]))
+        self.features_entry.insert(0, ",".join(property_row["features"]))
+        self.tags_entry.insert(0, ",".join(property_row["tags"]))
+        self.environment_entry.insert(0, ",".join(property_row["environment"]))
+
+        tk.Button(self.root, text="Save", command=self.submit_property).pack(pady=10)
+
+    def edit_user(self, users):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        users_df = pd.DataFrame(users)
+
+        tk.Label(self.root, text="Edit User").pack(pady=5)
+
+        self.editing_user_id = self.user_entry("Please enter User ID:")
+        tk.Button(self.root, text="Enter", command=lambda: self.edit_user_values(users_df)).pack(pady=10)
+
+    def edit_user_values(self, users):
+        edit_user = users[users["user_id"]==int(self.editing_user_id.get())]
+        user_row = edit_user.iloc[0]
+
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        self.user_id_entry = self.user_entry("User ID:")
+        self.name_entry = self.user_entry("Name:")
+        self.group_size_entry = self.user_entry("Group Size:")
+        self.env_entry = self.user_entry("Preferred Environment (comma separated):")
+        self.budget_low_entry = self.user_entry("Lower Budget Range:")
+        self.budget_high_entry = self.user_entry("Upper Budget Range:")
+        self.date_entry = self.user_entry("Travel Date (YYYY-MM-DD HH:MM:SS.FF), N for today:")
+
+        self.user_id_entry.insert(0, str(user_row["user_id"]))
+        self.name_entry.insert(0, str(user_row["name"]))
+        self.group_size_entry.insert(0, str(user_row["group_size"]))
+        self.env_entry.insert(0, ",".join(user_row["preferred_environment"]))
+        self.budget_low_entry.insert(0, str(edit_user["budget_range"][0][0]))
+        self.budget_high_entry.insert(0, str(edit_user["budget_range"][0][1]))
+        self.date_entry.insert(0, str(user_row["travel_date"]))
+
+        tk.Button(self.root, text="Save", command=self.submit_user).pack(pady=10)
+
+########################################################################################################################
 
 def cli(properties: list[Property], users: list[User]):
     def create_user():
@@ -740,7 +1088,8 @@ def main():
             case "1":
                 cli(properties, users)
             case "2":
-                gui(properties, users)
+                gui = GUI()
+                gui.run()
         print("Invalid input")
 
 
