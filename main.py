@@ -817,8 +817,7 @@ def cli(properties: list[Property], users: list[User]):
               f"3. View properties  \t 4. View users\n"
               f"5. Edit user        \t 6. Edit property\n"
               f"7. Load from file   \t 8. Save to file\n"
-              f"9. Get recommendations \t 10. Exit\n"
-              f"11. Exit\n")
+              f"9. Get recommendations \t 10. Exit\n")
         user_input = input("Enter your choice: ")
         match user_input:
             case "1":
