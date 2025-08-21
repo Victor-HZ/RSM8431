@@ -2,7 +2,7 @@
 
 # LLM-Powered Summer Home Recommender
 
-A command-line application based on python for recommending vacation rentals.  The project supports user/property profile management, provides an interactive CLI menu, and leaves placeholders for LLM-powered travel blurbs and synthetic property generation (not yet implemented).
+A command-line application based on python for recommending vacation rentals.  The project supports user/property profile management, provides an interactive CLI menu, and leaves placeholders for LLM-powered travel blurbs and synthetic property generation.
 
 
 ## Table of Contents
@@ -25,7 +25,7 @@ According to the course spec:
 - Manage user profiles (create/view/edit/delete)  
 - Manage property listings (JSON dataset)  
 - **Recommender logic** (budget + preference vector matching, Top-N output)  
-- **CLI application**: `create_user`, `edit_profile`, `view_properties`, `get_recommendations`, `llm_summary`, `exit` (current code’s menu differs slightly; see below)   
+- **CLI application**: `create_user`, `edit_profile`, `view_properties`, `get_recommendations`, `exit` 
 
 ---
 
@@ -42,10 +42,12 @@ According to the course spec:
 ### Property (`Property` class in `main.py`)
 - `property_id: int`  
 - `location: str`  
-- `type: str` (e.g. cabin, condo, chalet)  
+- `[property_type: str` (e.g. cabin, condo, chalet)  
 - `price_per_night: float`  
 - `features: list[str]`  
-- `tags: list[str]`  
+- `tags: list[str]`
+- `max_guests: int`
+- `environment: str`
 
 Methods: `update_id / update_type / update_price_per_night / update_location / update_tags / update_features / get_dict ...`
 
@@ -66,7 +68,7 @@ Methods: `update_name / update_id / update_budget_range / update_travel_date / u
 ## Environment & Installation
 
 - Python 3.9+ (recommended: 3.10/3.11)  
-- Dependencies: currently only standard library (`datetime`, `json`, `getpass`, `requests`—not all used yet)  
+- Dependencies: `datetime`, `json`, `getpass`, `requests`, `numpy`, `pandas`, `tkinter`
 
 ```bash
 # Clone
@@ -104,13 +106,13 @@ You’ll see the top-level menu (main()):
 Enter your choice:
 
 - Choose 1 → CLI main menu
-- Choose 2 → GUI (currently not implemented)
+- Choose 2 → GUI main menu
 
 ---
 
 ## CLI Menu & Example Flow
 
-cli() menu (actual formatting may differ):
+cli() menu:
 
 ```bash
 -------------------- Main Menu --------------------
@@ -118,8 +120,7 @@ cli() menu (actual formatting may differ):
 3. View properties        4. View users
 5. Edit user              6. Edit property
 7. Load from file         8. Save to file
-9. Get recommendations    10. LLM summary
-11. Exit
+9. Get recommendations    10. Exit
 ```
 
 #### 1) Create a new user
@@ -150,53 +151,89 @@ Select ID, then update fields via menu.
 Hardcoded JSON file read/write.
 
 #### 9) Get recommendations
-Not implemented (get_recommendation() is empty).
+User will view a list of User IDs, and be prompted to select a User ID. User info will be input and redirected to LLM model, which will output the five top property recommendations.
+
+#### 10) Exit
+
+---
+
+## GUI Menu & Example Flow
+
+When the GUI is selected, an external tab will appear. User will view the main menu and be prompted to enter one of the following options into the text box:
+
+```bash
+-------------------- Main Menu --------------------
+1. Create a new user      
+2. Create a new property
+3. View properties        
+4. View users
+5. Edit user              
+6. Edit property
+7. Load from file         
+8. Save to file
+9. Get recommendations    
+10. Exit
+```
+
+#### 1) Create a new user
+The user will be prompted to fill out the following textboxes, labelled above: 
+- User ID (int)
+- Name (str)
+- Group Size (int)
+- Preferred Environment (comma-separated list)
+- Budget Range (lower & upper ints)
+- Travel Date (must be YYYY-MM-DD HH:MM:SS.FF with microseconds, or N for now)
+- Save button - user will be redirected to main menu and receive a success message.
+
+#### 2) Create a new property
+The user will be prompted to fill out the following textboxes, labelled above: 
+- Property ID (int)
+- Location (str)
+- Type (str)
+- Price per Night (float)
+- Max guests (int)
+- Features (comma-separated list)
+- Tags (comma-separated list)
+- Environment (comma-separated list)
+- Save button - user will be redirected to main menu and receive a success message.
+
+#### 3&4)View properties/users
+The user will be prompted with two buttons: 
+- I already know my User ID/Property ID - user will be prompted to enter User ID/Property ID, and selected User ID/Property ID will be printed out. 
+- View all - all users/properties will be printed out. 
+
+For both options, on viewing page, user will have a button which will redirect the mto the main menu.
+
+#### 5/6) Edit user/property
+Select ID, then update fields via menu. Data from existing users/properties will appear in textbox fields for editing. Save button will update fields, and user will be redirected to main menu.
+
+#### 7/8) Load/Save from file
+Hardcoded JSON file read/write. User will be redirected to main menu and receive a success message.
+
+#### 9) Get recommendations
+User will view a list of User IDs, and be prompted to select a User ID. User info will be input and redirected to LLM model, which will output the five top property recommendations. User will have the option to return to main menu after receiving recommendations. 
 
 #### 10) LLM summary
 Not implemented (llm_summary() is empty).
 
 #### 11) Exit
+User will receive a thank you message and tab will close.
 
 ---
 
-## Recommendation Logic (Planned)
+## Recommendation Logic
+1. Scoring and Filtering 
+* Properties are ranked based on five points: Budget, Capacity, Environment, Features, and LLM. Filtering is done through penalizing properties which have less similarity to user preferences. 
+* Budget: Properties are scored based on closeness to user's budget range. Properties that fall above the user's budget are penalized to ensure adherence to user preferences.
+* Capacity: Properties are scored based on closeness to user's group size. Properties that are too small and too large for user's group size are penalized to ensure adherence to user preferences.
+* Environment and Features: Properties are scored based on shared qualities to user's preferred environment/preferred features. Properties that contain more preferred environment/features are ranked higher to ensure adherence to user preferences.
+* LLM: An LLM is used to score properties based on overall match to user's input preferences in all categories. The model returns a score for how much similarity each property has to user preferences. 
 
-Per the spec:
-1) Filtering 
-- Budget range: price_per_night ∈ [budget_min, budget_max]
-- Group size: (currently missing capacity field; can’t filter)
-2) Scoring
-- Environment match: overlap of preferred_environment vs property tags
-- Budget closeness: normalized difference from budget midpoint
-- Feature/tag matches: e.g. wifi, lakefront, hot tub
-- Weighted sum: 
-```
-score = 0.5*env_score + 0.3*budget_score + 0.2*feature_score
-```
-3) Ranking & Output
-- Sort by score
-- Print Top-N (e.g., top 5)
+Each score is normalized on a scale of 1-10, and a weighted average of the five scores is computed. This weighted average is used as the overall property score for the selected user. 
 
----
-
-## Roadmap & TODO
-* GUI
-* GUI & CLI function sharing
-* Vectorized Matching (No idea at all)
-* Property Scoring
-* Docstring
-* Readme
-* Slides
-
----
-
-## Weaknesses & Improvement Checklist
-1) No explainability in recommendations
-- Even if the recommendation logic works, the current design doesn’t explain why a property is recommended.
-- You should display scoring breakdowns (e.g., budget closeness, environment match, feature hits) so graders see the logic is meaningful.
-
-2) No testing or data validation
-- This can corrupt JSON files or produce misleading recommendations.
+2. Ranking and Output
+* Sort by score
+* Print top 5 properties 
 
 ---
 
