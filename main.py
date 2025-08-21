@@ -296,17 +296,38 @@ class Property:
 
 
 class User:
+    """
+    A class representing a user profile for an Airbnb-like property recommendation system.
+
+    Attributes:
+        user_id (int): Unique identifier for the user.
+        name (str): Name of the user (stored in lowercase).
+        group_size (int): Number of people in the group.
+        preferred_environment (list[str]): Preferred environments (e.g., "beach", "city").
+        budget_range (tuple[int, int]): Minimum and maximum nightly budget.
+        travel_date (datetime): Desired travel date.
+        _weighted_score (dict): Weights for scoring categories (budget, capacity, environment, features, LLM).
+        _llm_api (str): API key for the LLM.
+        _llm_url (str): Endpoint for the LLM.
+        _llm_model (str): LLM model identifier.
+        system_prompt (str): Prompt template used for LLM scoring.
+        _scoring_llm (Llm): Instance of the Llm helper class.
+
+    Raises:
+        ValueError: If the preferred environment contains unsupported values.
+    """
     def __init__(self, user_id: int, name: str, group_size: int, preferred_environment: list[str],
                  budget_range: tuple[int, int], travel_date: datetime = datetime.now()):
         """
-        Instantiate new user
+        Instantiate a new user.
 
-        :param user_id: User ID
-        :param name: Username
-        :param group_size: Group Size
-        :param preferred_environment: Preferred Environment
-        :param budget_range: Budget Range
-        :param travel_date: Travel Date
+        Args:
+            user_id (int): Unique identifier for the user.
+            name (str): Name of the user.
+            group_size (int): Number of people in the group.
+            preferred_environment (list[str] | str): List of preferred environments (or a single string).
+            budget_range (tuple[int, int]): Min and max nightly budget.
+            travel_date (datetime, optional): Desired travel date. Defaults to now.
         """
         self.user_id = user_id
         self.name = name.strip().lower()
@@ -343,6 +364,12 @@ class User:
         self._scoring_llm = Llm(self._llm_api, self._llm_model, self._llm_url, self.system_prompt)
 
     def __str__(self):
+        """
+        Return a readable string representation of the user profile.
+
+        Returns:
+            str: Formatted user details including group size, budget, and environments.
+        """
         env_list = "Preferred Environments:\n\t" + "\n\t".join(self.preferred_environment) \
             if self.preferred_environment else "Preferred Environments: (none)"
         return (f"\n\n"
@@ -355,6 +382,12 @@ class User:
                 f"--------------------------------------")
 
     def get_dict(self):
+        """
+        Convert the user profile to a dictionary.
+
+        Returns:
+            dict: A dictionary with user attributes.
+        """
         return {
             "user_id": self.user_id,
             "name": self.name,
@@ -365,24 +398,66 @@ class User:
         }
 
     def update_name(self, new_name: str):
+        """
+        Update the user's name.
+
+        Args:
+            new_name (str): New name.
+
+        Raises:
+            ValueError: If the input is not a string.
+        """
         self.name = new_name.strip().lower()
         if not isinstance(self.name, str):
             raise ValueError("Name must be a string.")
 
     def update_id(self, new_id: int):
+        """
+        Update the user's ID.
+
+        Args:
+            new_id (int): New user ID.
+
+        Raises:
+            ValueError: If the input is not an integer.
+        """
         self.user_id = new_id
         if not isinstance(self.user_id, int):
             raise ValueError("User ID must be an integer.")
 
     def update_budget_range(self, budget_range: tuple[int, int]):
+        """
+        Update the user's budget range.
+
+        Args:
+            budget_range (tuple[int, int]): New budget range.
+
+        Raises:
+            ValueError: If values are not numeric.
+        """
         self.budget_range = budget_range
         if not isinstance(self.budget_range[0], (float, int)) or not isinstance(self.budget_range[1], (float, int)):
             raise ValueError("Budget range must be a tuple of two integers or floats.")
 
     def update_travel_date(self, travel_date: datetime):
+        """
+        Update the user's travel date.
+
+        Args:
+            travel_date (datetime): New travel date.
+        """
         self.travel_date = travel_date
 
     def update_group_size(self, group_size: int):
+        """
+        Update the group size.
+
+        Args:
+            group_size (int): New group size.
+
+        Raises:
+            ValueError: If not an integer or less than 1.
+        """
         self.group_size = group_size
         if not isinstance(self.group_size, int):
             raise ValueError("Group size must be an integer.")
@@ -390,6 +465,15 @@ class User:
             raise ValueError("Group size must be at least 1.")
 
     def update_preferred_environment(self, preferred_environment: list[str]):
+        """
+        Update the user's preferred environments.
+
+        Args:
+            preferred_environment (list[str] | str): List of preferred environments.
+
+        Raises:
+            ValueError: If the environment is not supported.
+        """
         if isinstance(preferred_environment, str):
             self.preferred_environment = [preferred_environment.strip().lower()]
         elif isinstance(preferred_environment, list):
@@ -399,25 +483,54 @@ class User:
             raise ValueError(f"Unknown preferred environment {self.preferred_environment} is not supported.")
 
     def get_id(self):
+        """
+        Return the user ID (int).
+        """
         return self.user_id
 
     def get_name(self):
+        """
+        Return the user's name (str).
+        """
         return self.name
 
     def get_preferred_environment(self):
+        """
+        Return the preferred environments (list[str]).
+        """
         return self.preferred_environment
 
     def get_budget_range(self):
+        """
+        Return the budget range (tuple[int, int]).
+        """
         return self.budget_range
 
     def get_travel_date(self):
+        """
+        Return the travel date (datetime).
+        """
         return self.travel_date
 
     def get_group_size(self):
+        """
+        Return the group size (int).
+        """
         return self.group_size
 
     def _llm_scoring(self, properties: list[Property]):
+        """
+        Score properties using the LLM model.
 
+        Args:
+            properties (list[Property]): List of properties to score.
+
+        Returns:
+            pd.DataFrame: DataFrame with property_id, LLM score, and recommendation.
+
+        Raises:
+            ValueError: If LLM output is not valid JSON.
+        """
         result = self._scoring_llm.llm_inquiry([prop.get_dict() for prop in properties])
         start = result.find("[") if "[" in result else result.find("{")
         end = result.rfind("]")
@@ -432,10 +545,13 @@ class User:
 
     def score_properties(self, properties: list[Property]):
         """
-        To return a list of score for properties.
+        Score properties for the user based on budget, capacity, environment, features, and LLM feedback.
 
-        :param properties:
-        :return:
+        Args:
+            properties (list[Property]): List of properties to score.
+
+        Returns:
+            pd.DataFrame: Ranked DataFrame with property_id, total score, and LLM recommendation.
         """
         properties_df = properties_to_df(properties)
 
@@ -476,6 +592,16 @@ class User:
 
 
 def load_from_file() -> tuple[list[Property], list[User]]:
+    """
+    Load property and user data from JSON files.
+
+    Returns:
+        tuple[list[Property], list[User]]: Lists of Property and User objects.
+
+    Raises:
+        FileNotFoundError: If JSON files are missing.
+        ValueError: If JSON is invalid or parsing fails.
+    """
     try:
         with open("properties.json", "r") as file:
             temp_properties = json.load(file)
@@ -519,6 +645,19 @@ def load_from_file() -> tuple[list[Property], list[User]]:
 
 
 def write_to_file(properties: list[Property], users: list[User]) -> bool:
+    """
+    Save property and user data to JSON files.
+
+    Args:
+        properties (list[Property]): List of properties.
+        users (list[User]): List of users.
+
+    Returns:
+        bool: True if successful.
+
+    Raises:
+        FileNotFoundError: If file writing fails.
+    """
     try:
         properties_list = [prop.get_dict() for prop in properties]
         users_list = [user.get_dict() for user in users]
@@ -532,6 +671,15 @@ def write_to_file(properties: list[Property], users: list[User]) -> bool:
 
 
 def properties_to_df(properties: list[Property]) -> pd.DataFrame:
+    """
+    Convert a list of Property objects into a pandas DataFrame with dummy variables.
+
+    Args:
+        properties (list[Property]): List of properties.
+
+    Returns:
+        pd.DataFrame: DataFrame with expanded categorical variables for features, tags, type, and environment.
+    """
     df = pd.DataFrame([
         prop.get_dict() for prop in properties
     ])
@@ -545,6 +693,21 @@ def properties_to_df(properties: list[Property]) -> pd.DataFrame:
 
 def search_user(users: list[User], uid: int = None, name: str = None, group_size: int = None, preferred_environment: list[str] = None,
                 budget: int = None, travel_date: datetime = None):
+    """
+    Search users by attributes.
+
+    Args:
+        users (list[User]): List of users.
+        uid (int, optional): User ID.
+        name (str, optional): User name.
+        group_size (int, optional): Group size.
+        preferred_environment (list[str], optional): Preferred environment(s).
+        budget (int, optional): Budget to check if within user's range.
+        travel_date (datetime, optional): Travel date.
+
+    Returns:
+        list[User]: Filtered list of matching users.
+    """
     if uid is None and name is None and group_size is None and preferred_environment is None and budget is None and travel_date is None:
         return users
     result = []
@@ -561,6 +724,23 @@ def search_user(users: list[User], uid: int = None, name: str = None, group_size
 
 def search_property(properties: list[Property], property_id: int = None, location: str =None, property_type: str=None, price_per_night: float=None,
                     features: list[str]=None, tags: list[str]=None, max_guests: int=None, environment: str=None):
+    """
+    Search properties by attributes.
+
+    Args:
+        properties (list[Property]): List of properties.
+        property_id (int, optional): Property ID.
+        location (str, optional): Location filter.
+        property_type (str, optional): Type filter.
+        price_per_night (float, optional): Max price per night.
+        features (list[str] | str, optional): Required features.
+        tags (list[str] | str, optional): Required tags.
+        max_guests (int, optional): Guest capacity.
+        environment (str, optional): Environment filter.
+
+    Returns:
+        list[Property]: Filtered list of matching properties.
+    """
     if (property_id is None and location is None and property_type is None and price_per_night is None and features is None and tags is None
             and max_guests is None and environment is None):
         return properties
@@ -582,6 +762,16 @@ def search_property(properties: list[Property], property_id: int = None, locatio
 
 
 def get_recommendation(user: User, properties: list[Property]):
+    """
+    Get top property recommendations for a user.
+
+    Args:
+        user (User): The user profile.
+        properties (list[Property]): List of available properties.
+
+    Returns:
+        pd.DataFrame: Top 5 properties ranked by total score.
+    """
     result = user.score_properties(properties)
     if result.shape[0] >= 5:
         return result.nlargest(5, "total score")
@@ -589,26 +779,41 @@ def get_recommendation(user: User, properties: list[Property]):
         return result.nlargest(result.shape[0], "total score")
 
 def update_environments_pool(environment: list[str] | str):
+    """
+    Update global environments pool with new environments.
+    """
     if isinstance(environment, str):
         environment = [environment.strip().lower()]
     environments_pool.extend([env for env in environment if env not in environments_pool])
 
 def update_tags_pool(tag: list[str] | str):
+    """
+    Update global tags pool with new tags.
+    """
     if isinstance(tag, str):
         tag = [tag.strip().lower()]
     tags_pool.extend([tag for tag in tag if tag not in tags_pool])
 
 def update_features_pool(feature: list[str] | str):
+    """
+    Update global features pool with new features.
+    """
     if isinstance(feature, str):
         feature = [feature.strip().lower()]
     features_pool.extend([feature for feature in feature if feature not in features_pool])
 
 def update_locations_pool(locations: list[str] | str):
+    """
+    Update global locations pool with new locations.
+    """
     if isinstance(locations, str):
         locations = [locations.strip().lower()]
     locations_pool.extend([location for location in locations if location not in locations_pool])
 
 def update_types_pool(types: list[str] | str):
+    """
+    Update global property types pool with new types.
+    """
     if isinstance(types, str):
         types = [types.strip().lower()]
     types_pool.extend([type for type in types if type not in types_pool])
@@ -864,7 +1069,29 @@ def get_api():
     return api_key
 
 class Llm:
+    """
+    A class representing a client for interacting with a Large Language Model (LLM) API.
+
+    Attributes:
+        api_key (str): The API key used for authentication.
+        model (str): The identifier of the LLM model.
+        url (str): The endpoint URL of the API.
+        system_prompt (str): The system-level instruction defining assistant behavior.
+        headers (dict): HTTP request headers including authorization and content type.
+
+    Raises:
+        ValueError: If the API response does not contain content.
+    """
     def __init__(self, api_key: str, model: str, url: str, system_prompt: str):
+        """
+        Initialize a new Llm instance.
+
+        Args:
+            api_key (str): The API key for authentication.
+            model (str): The name or identifier of the LLM model.
+            url (str): The API endpoint URL.
+            system_prompt (str): Instruction defining assistant role or behavior.
+        """
         self.api_key = api_key
         self.model = model
         self.url = url
@@ -875,6 +1102,12 @@ class Llm:
         }
 
     def update_api_key(self, api_key: str):
+        """
+        Update the API key and refresh authorization headers.
+
+        Args:
+            api_key (str): The new API key.
+        """
         self.api_key = api_key
         self.headers = {
             "Authorization": f"Bearer {api_key}",
@@ -882,12 +1115,37 @@ class Llm:
         }
 
     def update_model(self, model: str):
+        """
+        Update the LLM model.
+
+        Args:
+            model (str): The new model identifier.
+        """
         self.model = model
 
     def update_url(self, url: str):
+        """
+        Update the API endpoint URL.
+
+        Args:
+            url (str): The new endpoint URL.
+        """
         self.url = url
 
     def llm_inquiry(self, user_prompt):
+        """
+        Send a query to the LLM API and return the response.
+
+        Args:
+            user_prompt (str): The prompt to send to the model.
+
+        Returns:
+            str: The model's text response.
+            dict: Error details if the request fails.
+
+        Raises:
+            ValueError: If no content is returned in the response.
+        """
         payload = {
             "model": self.model,
             "messages": [
