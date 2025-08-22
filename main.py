@@ -823,7 +823,25 @@ def update_types_pool(types: list[str] | str):
     types_pool.extend([type for type in types if type not in types_pool])
 
 class GUI:
+    """
+    A class representing the graphical user interface (GUI) for the Simple Airbnb application.
+
+    Attributes:
+        root (tk.Tk): The main Tkinter application window.
+        users_list (list[User]): List of user profiles.
+        properties_list (list[Property]): List of property listings.
+        label (tk.Label): A label widget for displaying text.
+        listbox (tk.Listbox): A listbox widget for displaying menu options.
+        entry (tk.Entry): An entry widget for user input.
+        button (tk.Button): A button widget for submitting input.
+    """
     def __init__(self):
+        """
+        Initialize the GUI application.
+
+        Creates the main Tkinter window, initializes user and property lists,
+        and displays the main menu.
+        """
         self.root = tk.Tk()
         self.root.title("Simple Airbnb") # change title
         self.root.geometry("500x500")
@@ -834,6 +852,12 @@ class GUI:
         self.main_menu()
 
     def main_menu(self):
+        """
+        Display the main menu of the application.
+
+        Shows available options such as creating users, creating properties,
+        viewing data, editing entries, loading/saving files, and exiting.
+        """
         for widget in self.root.winfo_children():
             widget.destroy()
 
@@ -856,6 +880,12 @@ class GUI:
         self.button.pack(pady=20)
 
     def redirect_input(self):
+        """
+        Redirect user input from the main menu to the corresponding functionality.
+
+        Raises:
+            ValueError: If the input is not a valid integer menu option.
+        """
         try:
             user_input = int(self.entry.get())
         except ValueError:
@@ -889,10 +919,22 @@ class GUI:
             self.exit()
 
     def run(self):
+        """
+        Run the Tkinter main loop to keep the GUI application active.
+        """
         self.root.mainloop()
 
     # collects user entries and adds label
     def user_entry(self, label):
+        """
+        Create a labeled entry field for user input.
+
+        Args:
+            label (str): The label text to display.
+
+        Returns:
+            tk.Entry: The entry widget for user input.
+        """
         tk.Label(self.root, text=label).pack()
         user_entry = tk.Entry(self.root)
         user_entry.pack()
@@ -901,6 +943,12 @@ class GUI:
     # user entry labels
     # it's more difficult to do the one by one entries like the cli so its all in one form rn for the gui
     def create_user(self):
+        """
+        Display the form for creating a new user.
+
+        Includes fields for user ID, name, group size, preferred environment,
+        budget range, and travel date.
+        """
         for widget in self.root.winfo_children():
             widget.destroy()
 
@@ -918,6 +966,12 @@ class GUI:
 
     # create a new user - for button to work (same format as CLI)
     def submit_user(self):
+        """
+        Collect inputs from the user creation form and save the new user.
+
+        Raises:
+            ValueError: If inputs are invalid (e.g., non-integer IDs or budgets).
+        """
         user_id = int(self.user_id_entry.get())
         name = str(self.name_entry.get())
         group_size = int(self.group_size_entry.get())
@@ -937,6 +991,12 @@ class GUI:
         self.main_menu()
 
     def create_property(self):
+        """
+        Display the form for creating a new property.
+
+        Includes fields for property ID, location, type, price, maximum guests,
+        features, tags, and environment.
+        """
         for widget in self.root.winfo_children():
             widget.destroy()
 
@@ -954,6 +1014,12 @@ class GUI:
         tk.Button(self.root, text="Enter", command=self.submit_property).pack(pady=10)
 
     def submit_property(self):
+        """
+        Collect inputs from the property creation form and save the new property.
+
+        Raises:
+            ValueError: If inputs are invalid (e.g., non-integer IDs or prices).
+        """
         property_id = self.property_id_entry.get()
         location = self.location_entry.get()
         loc_type = self.type_entry.get()
@@ -971,6 +1037,12 @@ class GUI:
         self.main_menu()
 
     def view_property(self, properties):
+        """
+        Display property viewing options.
+
+        Args:
+            properties (list[Property]): List of property objects to display.
+        """
         for widget in self.root.winfo_children():
             widget.destroy()
 
@@ -986,6 +1058,12 @@ class GUI:
         all_property.pack(side="right", padx=10)
 
     def view_one_property(self, properties):
+        """
+        Display input form to view a single property by ID.
+
+        Args:
+            properties (pd.DataFrame): DataFrame of property details.
+        """
         for widget in self.root.winfo_children():
             widget.destroy()
 
@@ -993,6 +1071,12 @@ class GUI:
         tk.Button(self.root, text="Enter", command=lambda: self.get_property_id(properties)).pack(pady=10)
 
     def get_property_id(self, properties):
+        """
+        Retrieve and display details of a property by ID.
+
+        Args:
+            properties (pd.DataFrame): DataFrame of property details.
+        """
         self.ID = int(self.selected_property_id.get())
         selected_property = properties[properties["property_id"]==self.ID]
 
@@ -1016,6 +1100,12 @@ class GUI:
 
     # note: can't wrap text in treeview
     def view_all_property(self, properties):
+        """
+        Display all properties in a scrollable table.
+
+        Args:
+            properties (pd.DataFrame): DataFrame of property details.
+        """
         for widget in self.root.winfo_children():
             widget.destroy()
 
@@ -1049,6 +1139,12 @@ class GUI:
         tk.Button(self.root, text="Main Menu", command=self.main_menu).pack(pady=10)
 
     def view_user(self, users):
+        """
+        Display user viewing options.
+
+        Args:
+            users (list[User]): List of user objects to display.
+        """
         for widget in self.root.winfo_children():
             widget.destroy()
 
@@ -1064,6 +1160,12 @@ class GUI:
         all_property.pack(side="right", padx=10)
 
     def view_one_user(self, users):
+        """
+        Display input form to view a single user by ID.
+
+        Args:
+            users (pd.DataFrame): DataFrame of user details.
+        """
         for widget in self.root.winfo_children():
             widget.destroy()
 
@@ -1071,6 +1173,12 @@ class GUI:
         tk.Button(self.root, text="Enter", command=lambda: self.get_user_id(users)).pack(pady=10)
 
     def get_user_id(self, users):
+        """
+        Retrieve and display details of a user by ID.
+
+        Args:
+            users (pd.DataFrame): DataFrame of user details.
+        """
         self.ID = int(self.selected_user_id.get())
         selected_user = users[users["user_id"] == self.ID]
 
@@ -1093,6 +1201,12 @@ class GUI:
         tk.Button(self.root, text="Main Menu", command=self.main_menu).pack(pady=10)
 
     def view_all_user(self, users):
+        """
+        Display all users in a scrollable table.
+
+        Args:
+            users (pd.DataFrame): DataFrame of user details.
+        """
         for widget in self.root.winfo_children():
             widget.destroy()
 
@@ -1126,6 +1240,12 @@ class GUI:
         tk.Button(self.root, text="Main Menu", command=self.main_menu).pack(pady=10)
 
     def edit_property(self, properties):
+        """
+        Display input form to edit a property by ID.
+
+        Args:
+            properties (list[Property]): List of property objects.
+        """
         for widget in self.root.winfo_children():
             widget.destroy()
 
@@ -1137,6 +1257,12 @@ class GUI:
         tk.Button(self.root, text="Enter", command=lambda: self.edit_property_values(properties_df)).pack(pady=10)
 
     def edit_property_values(self, properties):
+        """
+        Display editable fields for a selected property.
+
+        Args:
+            properties (pd.DataFrame): DataFrame of property details.
+        """
         edit_property = properties[properties["property_id"] == int(self.editing_property_id.get())]
         property_row = edit_property.iloc[0]
 
@@ -1176,14 +1302,32 @@ class GUI:
         tk.Button(self.root, text="Save", command=lambda: self.replace_property(old_id)).pack(pady=10)
 
     def replace_property(self, old_id):
+        """
+        Replace an existing property with updated values.
+
+        Args:
+            old_id (int): ID of the property being replaced.
+        """
         self.properties_list = [i for i in self.properties_list if str(i.property_id) != str(old_id)]
         self.submit_property()
 
     def replace_user(self, old_id):
+        """
+        Replace an existing user with updated values.
+
+        Args:
+            old_id (int): ID of the user being replaced.
+        """
         self.users_list = [i for i in self.users_list if str(i.user_id) != str(old_id)]
         self.submit_user()
 
     def edit_user(self, users):
+        """
+        Display input form to edit a user by ID.
+
+        Args:
+            users (list[User]): List of user objects.
+        """
         for widget in self.root.winfo_children():
             widget.destroy()
 
@@ -1195,6 +1339,12 @@ class GUI:
         tk.Button(self.root, text="Enter", command=lambda: self.edit_user_values(users_df)).pack(pady=10)
 
     def edit_user_values(self, users):
+        """
+        Display editable fields for a selected user.
+
+        Args:
+            users (pd.DataFrame): DataFrame of user details.
+        """
         edit_user = users[users["user_id"]==int(self.editing_user_id.get())]
         user_row = edit_user.iloc[0]
 
@@ -1229,6 +1379,13 @@ class GUI:
         tk.Button(self.root, text="Save", command=lambda: self.replace_user(old_id)).pack(pady=10)
 
     def get_recommendations(self, users, properties):
+        """
+        Display a recommendation selection menu.
+
+        Args:
+            users (list[User]): List of user objects.
+            properties (list[Property]): List of property objects.
+        """
         for widget in self.root.winfo_children():
             widget.destroy()
 
@@ -1247,6 +1404,13 @@ class GUI:
         tk.Button(self.root, text="Enter", command=lambda: self.print_recommendations(users, properties)).pack(pady=10)
 
     def print_recommendations(self, users, properties):
+        """
+        Display property recommendations for a selected user.
+
+        Args:
+            users (list[User]): List of user objects.
+            properties (list[Property]): List of property objects.
+        """
         target_id = int(self.recommend_id.get())
 
         for widget in self.root.winfo_children():
@@ -1277,11 +1441,36 @@ class GUI:
         tk.Button(self.root, text="Main Menu", command=self.main_menu).pack(pady=10)
 
     def exit(self):
+        """
+        Exit the GUI application and show a farewell message.
+        """
         messagebox.showinfo("Simple Airbnb", "Thank you for using Simple Airbnb!")
         self.root.withdraw()
 
 
 def cli(properties: list[Property], users: list[User]):
+    """
+    Run the command-line interface (CLI) for managing users and properties.
+
+    This interactive loop allows users to create and edit users or properties,
+    view details, load or save data to files, and generate recommendations.
+
+    Args:
+        properties (list[Property]): The list of property objects to manage.
+        users (list[User]): The list of user objects to manage.
+
+    Options:
+        1. Create a new user
+        2. Create a new property
+        3. View all properties
+        4. View all users
+        5. Edit a user
+        6. Edit a property
+        7. Load data from file
+        8. Save data to file
+        9. Generate recommendations
+        10. Exit
+    """
     def create_user():
         # TODO implement try except to catch invalid input for int
         user_id = int(input("Enter User ID: "))
@@ -1307,6 +1496,7 @@ def cli(properties: list[Property], users: list[User]):
         return User(user_id, name, group_size, preferred_environment, budget_range, travel_date)
 
     def create_property():
+
         property_id = int(input("Enter Property ID: "))
         location = input("Enter Location: ")
         loc_type = input("Enter Type: ")
@@ -1486,6 +1676,17 @@ def cli(properties: list[Property], users: list[User]):
 
 
 def main():
+    """
+        Main entry point of the application.
+
+        Loads initial user and property data, and prompts the user to choose
+        between running the Command-Line Interface (CLI) or the Graphical User
+        Interface (GUI).
+
+        Options:
+            1. CLI - Run the text-based menu system.
+            2. GUI - Run the Tkinter-based graphical interface.
+    """
     # Main loop for CLI
     properties, users = load_from_file()
     while True:
@@ -1502,6 +1703,15 @@ def main():
         print("Invalid input")
 
 def get_api():
+    """
+    Retrieve the API key for authenticating with the LLM API.
+
+    The API key is first read from the environment variable `API_KEY`.
+    If it is not found, the user will be prompted securely for input.
+
+    Returns:
+        str: The API key for authentication.
+    """
     api_key = os.getenv("API_KEY")
     if api_key is None:
         api_key = getpass.getpass(prompt="Enter API Key: ")
