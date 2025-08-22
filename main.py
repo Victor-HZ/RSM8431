@@ -886,7 +886,7 @@ class GUI:
         Raises:
             ValueError: If the input is not a valid integer menu option.
         """
-        try:
+                try:
             user_input = int(self.entry.get())
         except ValueError:
             messagebox.showinfo("Error", "Please enter a valid number.")
@@ -906,12 +906,22 @@ class GUI:
         elif user_input == 6:
             self.edit_property(self.properties_list)
         elif user_input == 7:
-            self.properties_list, self.users_list = load_from_file()
-            messagebox.showinfo("Simple Airbnb", "Success!")
+            try:
+                self.properties_list, self.users_list = load_from_file()
+                messagebox.showinfo("Simple Airbnb", "Data loaded successfully!")
+            except FileNotFoundError as e:
+                messagebox.showerror("Error", f"File not found: {e}")
+            except ValueError as e:
+                messagebox.showerror("Error", f"Error reading JSON: {e}")
             self.main_menu()
         elif user_input == 8:
-            write_to_file(self.properties_list, self.users_list)
-            messagebox.showinfo("Simple Airbnb", "Success!")
+            try:
+                write_to_file(self.properties_list, self.users_list)
+                messagebox.showinfo("Simple Airbnb", "Data saved successfully!")
+            except FileNotFoundError as e:
+                messagebox.showerror("Error", f"File not found: {e}")
+            except ValueError as e:
+                messagebox.showerror("Error", f"Error writing JSON: {e}")
             self.main_menu()
         elif user_input == 9:
             self.get_recommendations(self.users_list, self.properties_list)
@@ -972,22 +982,57 @@ class GUI:
         Raises:
             ValueError: If inputs are invalid (e.g., non-integer IDs or budgets).
         """
-        user_id = int(self.user_id_entry.get())
-        name = str(self.name_entry.get())
-        group_size = int(self.group_size_entry.get())
-        preferred_environment = [i.strip() for i in self.env_entry.get().split(",")]
-        budget_range = (int(self.budget_low_entry.get()), int(self.budget_high_entry.get()))
-        travel_date_input = str(self.date_entry.get())
-        if travel_date_input == "N":
-            travel_date = datetime.now()
-        else:
-            travel_date = datetime.strptime(travel_date_input, "%Y-%m-%d %H:%M:%S.%f")
+                try:
+            user_id = int(self.user_id_entry.get())
+        except ValueError:
+            messagebox.showerror("Error", "User ID must be an integer.")
+            return
 
-        users = User(user_id, name, group_size, preferred_environment, budget_range, travel_date)
-        self.users_list.append(users)
+        name = self.name_entry.get().strip()
+        if not isinstance(name, str) or not name:
+            messagebox.showerror("Error", "Name must be a string.")
+            return
+
+        try:
+            group_size = int(self.group_size_entry.get())
+            if group_size < 1:
+                messagebox.showerror("Error", "Group size must be at least 1.")
+                return
+        except ValueError:
+            messagebox.showerror("Error", "Group size must be an integer.")
+            return
+
+        preferred_environment = [i.strip() for i in self.env_entry.get().split(",")]
+        if not all(isinstance(env, str) for env in preferred_environment):
+            messagebox.showerror("Error", "Preferred environment must be a list of strings.")
+            return
+
+        try:
+            budget_low = float(self.budget_low_entry.get())
+            budget_high = float(self.budget_high_entry.get())
+            budget_range = (min(budget_low, budget_high), max(budget_low, budget_high))
+        except ValueError:
+            messagebox.showerror("Error", "Budget range must be numbers.")
+            return
+
+        travel_date_input = self.date_entry.get().strip()
+        try:
+            if travel_date_input.upper() == "N" or not travel_date_input:
+                travel_date = datetime.now()
+            else:
+                travel_date = datetime.strptime(travel_date_input, "%Y-%m-%d %H:%M:%S.%f")
+        except ValueError:
+            messagebox.showerror("Error", "Travel date must be in format YYYY-MM-DD HH:MM:SS.ssssss or 'N'.")
+            return
+
+        try:
+            user = User(user_id, name, group_size, preferred_environment, budget_range, travel_date)
+            self.users_list.append(user)
+        except ValueError as e:
+            messagebox.showerror("Error", str(e))
+            return
 
         messagebox.showinfo("Simple Airbnb", "User has been saved!")
-
         self.main_menu()
 
     def create_property(self):
@@ -1020,20 +1065,60 @@ class GUI:
         Raises:
             ValueError: If inputs are invalid (e.g., non-integer IDs or prices).
         """
-        property_id = self.property_id_entry.get()
-        location = self.location_entry.get()
-        loc_type = self.type_entry.get()
-        price_per_night = self.price_entry.get()
-        max_guests = self.max_guests_entry.get()
-        features = [i.strip() for i in self.features_entry.get().split(",")]
-        loc_tags = [i.strip() for i in self.tags_entry.get().split(",")]
-        env = self.environment_entry.get()
+                try:
+            property_id = int(self.property_id_entry.get())
+        except ValueError:
+            messagebox.showerror("Error", "Property ID must be an integer.")
+            return
 
-        prop = Property(property_id, location, loc_type, price_per_night, features, loc_tags, max_guests, env)
-        self.properties_list.append(prop)
+        location = self.location_entry.get().strip()
+        if not location:
+            messagebox.showerror("Error", "Location must be a string.")
+            return
+
+        loc_type = self.type_entry.get().strip()
+        if not loc_type:
+            messagebox.showerror("Error", "Property type must be a string.")
+            return
+
+        try:
+            price_per_night = float(self.price_entry.get())
+        except ValueError:
+            messagebox.showerror("Error", "Price per night must be a number.")
+            return
+
+        try:
+            max_guests = int(self.max_guests_entry.get())
+            if max_guests < 1:
+                messagebox.showerror("Error", "Maximum guest count must be at least 1.")
+                return
+        except ValueError:
+            messagebox.showerror("Error", "Maximum guest count must be an integer.")
+            return
+
+        features = [i.strip() for i in self.features_entry.get().split(",")]
+        if not all(isinstance(f, str) for f in features):
+            messagebox.showerror("Error", "Features must be a list of strings.")
+            return
+
+        loc_tags = [i.strip() for i in self.tags_entry.get().split(",")]
+        if not all(isinstance(t, str) for t in loc_tags):
+            messagebox.showerror("Error", "Tags must be a list of strings.")
+            return
+
+        env = self.environment_entry.get().strip()
+        if not env:
+            messagebox.showerror("Error", "Environment must be a string.")
+            return
+
+        try:
+            prop = Property(property_id, location, loc_type, price_per_night, features, loc_tags, max_guests, env)
+            self.properties_list.append(prop)
+        except ValueError as e:
+            messagebox.showerror("Error", str(e))
+            return
 
         messagebox.showinfo("Simple Airbnb", "Property has been saved!")
-
         self.main_menu()
 
     def view_property(self, properties):
@@ -1077,8 +1162,19 @@ class GUI:
         Args:
             properties (pd.DataFrame): DataFrame of property details.
         """
-        self.ID = int(self.selected_property_id.get())
-        selected_property = properties[properties["property_id"]==self.ID]
+                try:
+            prop_id = int(self.selected_property_id.get())
+        except ValueError:
+            messagebox.showerror("Error", "Property ID must be an integer.")
+            self.view_one_property(properties)
+            return
+
+        selected_property = properties[properties["property_id"] == prop_id]
+
+        if selected_property.empty:
+            messagebox.showerror("Error", f"Property ID {prop_id} not found.")
+            self.view_one_property(properties)
+            return
 
         for widget in self.root.winfo_children():
             widget.destroy()
@@ -1179,8 +1275,19 @@ class GUI:
         Args:
             users (pd.DataFrame): DataFrame of user details.
         """
-        self.ID = int(self.selected_user_id.get())
-        selected_user = users[users["user_id"] == self.ID]
+                try:
+            user_id = int(self.selected_user_id.get())
+        except ValueError:
+            messagebox.showerror("Error", "User ID must be an integer.")
+            self.view_one_user(users)
+            return
+
+        selected_user = users[users["user_id"] == user_id]
+
+        if selected_user.empty:
+            messagebox.showerror("Error", f"User ID {user_id} not found.")
+            self.view_one_user(users)
+            return
 
         for widget in self.root.winfo_children():
             widget.destroy()
@@ -1263,43 +1370,55 @@ class GUI:
         Args:
             properties (pd.DataFrame): DataFrame of property details.
         """
-        edit_property = properties[properties["property_id"] == int(self.editing_property_id.get())]
-        property_row = edit_property.iloc[0]
+                try:
+            prop_id_str = self.editing_property_id.get()
+            if not prop_id_str.isdigit():
+                raise ValueError("Property ID must be an integer.")
+            prop_id = int(prop_id_str)
 
-        for widget in self.root.winfo_children():
-            widget.destroy()
+            edit_property = properties[properties["property_id"] == prop_id]
+            if edit_property.empty:
+                raise ValueError(f"Property ID {prop_id} not found.")
+            property_row = edit_property.iloc[0]
 
-        self.property_id_entry = self.user_entry("Property ID:")
-        self.location_entry = self.user_entry("Location:")
-        self.type_entry = self.user_entry("Type:")
-        self.price_entry = self.user_entry("Price for Night:")
-        self.max_guests_entry = self.user_entry("Max Guests:")
-        self.features_entry = self.user_entry("Features:")
-        self.tags_entry = self.user_entry("Tags:")
-        self.environment_entry = self.user_entry("Environment:")
+            for widget in self.root.winfo_children():
+                widget.destroy()
 
-        self.property_id_entry.insert(0, str(property_row["property_id"]))
-        self.location_entry.insert(0, str(property_row["location"]))
-        self.type_entry.insert(0, str(property_row["property_type"]))
-        self.price_entry.insert(0, str(property_row["price_per_night"]))
-        self.max_guests_entry.insert(0, str(property_row["max_guests"]))
+            self.property_id_entry = self.user_entry("Property ID:")
+            self.location_entry = self.user_entry("Location:")
+            self.type_entry = self.user_entry("Type:")
+            self.price_entry = self.user_entry("Price per Night:")
+            self.max_guests_entry = self.user_entry("Max Guests:")
+            self.features_entry = self.user_entry("Features (comma separated):")
+            self.tags_entry = self.user_entry("Tags (comma separated):")
+            self.environment_entry = self.user_entry("Environment:")
 
-        features = property_row["features"]
-        if isinstance(features, list):
-            self.features_entry.insert(0, ",".join(features))
-        else:
-            self.features_entry.insert(0, str(features))
+            self.property_id_entry.insert(0, str(property_row["property_id"]))
+            self.location_entry.insert(0, str(property_row["location"]))
+            self.type_entry.insert(0, str(property_row["property_type"]))
+            self.price_entry.insert(0, str(property_row["price_per_night"]))
+            self.max_guests_entry.insert(0, str(property_row["max_guests"]))
 
-        tags = property_row["tags"]
-        if isinstance(tags, list):
-            self.tags_entry.insert(0, ",".join(tags))
-        else:
-            self.tags_entry.insert(0, str(tags))
+            features = property_row["features"]
+            if isinstance(features, list):
+                self.features_entry.insert(0, ",".join(features))
+            else:
+                self.features_entry.insert(0, str(features))
 
-        self.environment_entry.insert(0, str(property_row["environment"]))
+            tags = property_row["tags"]
+            if isinstance(tags, list):
+                self.tags_entry.insert(0, ",".join(tags))
+            else:
+                self.tags_entry.insert(0, str(tags))
 
-        old_id = property_row["property_id"]
-        tk.Button(self.root, text="Save", command=lambda: self.replace_property(old_id)).pack(pady=10)
+            self.environment_entry.insert(0, str(property_row["environment"]))
+
+            old_id = property_row["property_id"]
+
+            tk.Button(self.root, text="Save", command=lambda: self.replace_property(old_id)).pack(pady=10)
+
+        except ValueError as e:
+            messagebox.showerror("Error, please try again.", str(e))
 
     def replace_property(self, old_id):
         """
@@ -1345,8 +1464,15 @@ class GUI:
         Args:
             users (pd.DataFrame): DataFrame of user details.
         """
-        edit_user = users[users["user_id"]==int(self.editing_user_id.get())]
-        user_row = edit_user.iloc[0]
+                try:
+            edit_user = users[users["user_id"] == int(self.editing_user_id.get())]
+            if edit_user.empty:
+                messagebox.showerror("Error", "User ID not found.")
+                return
+            user_row = edit_user.iloc[0]
+        except ValueError:
+            messagebox.showerror("Error", "User ID must be an integer.")
+            return
 
         for widget in self.root.winfo_children():
             widget.destroy()
@@ -1411,34 +1537,45 @@ class GUI:
             users (list[User]): List of user objects.
             properties (list[Property]): List of property objects.
         """
-        target_id = int(self.recommend_id.get())
+                try:
+            target_id_str = self.recommend_id.get()
+            if not target_id_str.isdigit():
+                raise ValueError("User ID must be an integer.")
+            target_id = int(target_id_str)
 
-        for widget in self.root.winfo_children():
-            widget.destroy()
+            if target_id < 0 or target_id >= len(users):
+                raise ValueError(f"User ID {target_id} not found.")
 
-        frame = tk.Frame(self.root)
-        frame.pack(fill="both", expand=True)
+            for widget in self.root.winfo_children():
+                widget.destroy()
 
-        text_widget = tk.Text(frame, wrap="word", width=100, height=20)
-        text_widget.grid(row=0, column=0, sticky="nsew")
+            frame = tk.Frame(self.root)
+            frame.pack(fill="both", expand=True)
 
-        v_scroll = ttk.Scrollbar(frame, orient="vertical", command=text_widget.yview)
-        v_scroll.grid(row=0, column=1, sticky="ns")
-        text_widget.configure(yscrollcommand=v_scroll.set)
+            text_widget = tk.Text(frame, wrap="word", width=100, height=20)
+            text_widget.grid(row=0, column=0, sticky="nsew")
 
-        frame.rowconfigure(0, weight=1)
-        frame.columnconfigure(0, weight=1)
+            v_scroll = ttk.Scrollbar(frame, orient="vertical", command=text_widget.yview)
+            v_scroll.grid(row=0, column=1, sticky="ns")
+            text_widget.configure(yscrollcommand=v_scroll.set)
 
-        top_properties = get_recommendation(users[target_id], properties).to_dict()
+            frame.rowconfigure(0, weight=1)
+            frame.columnconfigure(0, weight=1)
 
-        for i, property_id in enumerate(top_properties["property_id"], start=1):
-            line = (f"Number {i}\n"
-                  f"{properties[top_properties['property_id'][property_id]]}\n"
-                  f"Property Score:\t   {round(top_properties['total score'][property_id], 2)}\n"
-                  f"Recommendation:\t   {top_properties['llm_recommendation'][property_id]}\n")
-            text_widget.insert(tk.END, line)
+            top_properties = get_recommendation(users[target_id], properties).to_dict()
 
-        tk.Button(self.root, text="Main Menu", command=self.main_menu).pack(pady=10)
+            for i, property_id in enumerate(top_properties["property_id"], start=1):
+                line = (f"Number {i}\n"
+                        f"{properties[top_properties['property_id'][property_id]]}\n"
+                        f"Property Score:\t   {round(top_properties['total score'][property_id], 2)}\n"
+                        f"Recommendation:\t   {top_properties['llm_recommendation'][property_id]}\n")
+                text_widget.insert(tk.END, line)
+
+            tk.Button(self.root, text="Main Menu", command=self.main_menu).pack(pady=10)
+
+        except ValueError as e:
+            messagebox.showerror("Error", str(e))
+            self.get_recommendations(users, properties)
 
     def exit(self):
         """
