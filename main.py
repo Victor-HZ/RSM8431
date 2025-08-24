@@ -886,7 +886,7 @@ class GUI:
         Raises:
             ValueError: If the input is not a valid integer menu option.
         """
-                try:
+        try:
             user_input = int(self.entry.get())
         except ValueError:
             messagebox.showinfo("Error", "Please enter a valid number.")
@@ -982,7 +982,7 @@ class GUI:
         Raises:
             ValueError: If inputs are invalid (e.g., non-integer IDs or budgets).
         """
-                try:
+        try:
             user_id = int(self.user_id_entry.get())
         except ValueError:
             messagebox.showerror("Error", "User ID must be an integer.")
@@ -1065,7 +1065,7 @@ class GUI:
         Raises:
             ValueError: If inputs are invalid (e.g., non-integer IDs or prices).
         """
-                try:
+        try:
             property_id = int(self.property_id_entry.get())
         except ValueError:
             messagebox.showerror("Error", "Property ID must be an integer.")
@@ -1162,7 +1162,7 @@ class GUI:
         Args:
             properties (pd.DataFrame): DataFrame of property details.
         """
-                try:
+        try:
             prop_id = int(self.selected_property_id.get())
         except ValueError:
             messagebox.showerror("Error", "Property ID must be an integer.")
@@ -1275,7 +1275,7 @@ class GUI:
         Args:
             users (pd.DataFrame): DataFrame of user details.
         """
-                try:
+        try:
             user_id = int(self.selected_user_id.get())
         except ValueError:
             messagebox.showerror("Error", "User ID must be an integer.")
@@ -1370,7 +1370,7 @@ class GUI:
         Args:
             properties (pd.DataFrame): DataFrame of property details.
         """
-                try:
+        try:
             prop_id_str = self.editing_property_id.get()
             if not prop_id_str.isdigit():
                 raise ValueError("Property ID must be an integer.")
@@ -1464,7 +1464,7 @@ class GUI:
         Args:
             users (pd.DataFrame): DataFrame of user details.
         """
-                try:
+        try:
             edit_user = users[users["user_id"] == int(self.editing_user_id.get())]
             if edit_user.empty:
                 messagebox.showerror("Error", "User ID not found.")
@@ -1537,7 +1537,7 @@ class GUI:
             users (list[User]): List of user objects.
             properties (list[Property]): List of property objects.
         """
-                try:
+        try:
             target_id_str = self.recommend_id.get()
             if not target_id_str.isdigit():
                 raise ValueError("User ID must be an integer.")
