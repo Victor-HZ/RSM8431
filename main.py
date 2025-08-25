@@ -1,4 +1,5 @@
 import os
+import sys
 from datetime import datetime
 import json, requests, getpass
 
@@ -845,7 +846,6 @@ class GUI:
         self.root = tk.Tk()
         self.root.title("Simple Airbnb") # change title
         self.root.geometry("500x500")
-
         self.users_list = []
         self.properties_list = []
 
@@ -1833,11 +1833,13 @@ def main():
         user_input = input("Enter your choice: ")
         match user_input:
             case "1":
+                print(user_input)
                 cli(properties, users)
             case "2":
                 app = GUI()
-                app.run()        
-        print("Invalid input")
+                app.run()
+            case _:
+                print("Invalid input")
 
 def get_api():
     """
