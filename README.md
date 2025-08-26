@@ -212,10 +212,7 @@ Hardcoded JSON file read/write. User will be redirected to main menu and receive
 #### 9) Get recommendations
 User will view a list of User IDs, and be prompted to select a User ID. User info will be input and redirected to LLM model, which will output the five top property recommendations. User will have the option to return to main menu after receiving recommendations. 
 
-#### 10) LLM summary
-Not implemented (llm_summary() is empty).
-
-#### 11) Exit
+#### 10) Exit
 User will receive a thank you message and tab will close.
 
 ---
