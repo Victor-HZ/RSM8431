@@ -837,7 +837,7 @@ class GUI:
         entry (tk.Entry): An entry widget for user input.
         button (tk.Button): A button widget for submitting input.
     """
-    def __init__(self, users, properties):
+    def __init__(self, properties, users):
         """
         Initialize the GUI application.
 
