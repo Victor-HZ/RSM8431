@@ -14,7 +14,6 @@ A command-line application based on python for recommending vacation rentals.  T
 - [CLI Menu & Example Flow](#cli-menu--example-flow)
 - [GUI Menu & Example Flow](#gui-menu--example-flow) 
 - [Recommendation Logic](#recommendation-logic)     
-- [License](#license)  
 
 ---
 
