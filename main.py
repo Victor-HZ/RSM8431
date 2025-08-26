@@ -837,7 +837,7 @@ class GUI:
         entry (tk.Entry): An entry widget for user input.
         button (tk.Button): A button widget for submitting input.
     """
-    def __init__(self):
+    def __init__(self, users, properties):
         """
         Initialize the GUI application.
 
@@ -847,8 +847,8 @@ class GUI:
         self.root = tk.Tk()
         self.root.title("Simple Airbnb") # change title
         self.root.geometry("500x500")
-        self.users_list = []
-        self.properties_list = []
+        self.users_list = users
+        self.properties_list = properties
 
         self.main_menu()
 
