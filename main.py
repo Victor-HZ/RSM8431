@@ -1855,6 +1855,7 @@ def main():
             case _:
                 print("Invalid input")
 
+
 def get_api():
     """
     Retrieve the API key for authenticating with the LLM API.
@@ -1865,10 +1866,11 @@ def get_api():
     Returns:
         str: The API key for authentication.
     """
-    api_key = os.getenv("API_KEY")
-    if api_key is None:
-        api_key = getpass.getpass(prompt="Enter API Key: ")
-    return api_key
+    if not hasattr(get_api, "api_key"):
+        get_api.api_key = os.getenv("API_KEY")
+        if get_api.api_key is None:
+            get_api.api_key = getpass.getpass(prompt="Enter API Key: ")
+    return get_api.api_key
 
 class Llm:
     """
@@ -1934,7 +1936,7 @@ class Llm:
         """
         self.url = url
 
-    def llm_inquiry(self, user_prompt):
+    def llm_inquiry(self, user_prompt: str):
         """
         Send a query to the LLM API and return the response.
 
