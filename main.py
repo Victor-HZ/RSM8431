@@ -1770,12 +1770,13 @@ def cli(properties: list[Property], users: list[User]):
                 return users
         return users
     def get_top(users: list[User], properties: list[Property]):
-        id_list = [user.get_id() for user in users]
-        print("User IDs: ", id_list)
-        user_input = input("Enter User to Generate Recommendation, F to dismiss: ")
+        id_df = pd.DataFrame([{"user id": user.get_id(), "user name": user.get_name()} for user in users])
+
+        print("User IDs: ", tabulate(id_df, headers="keys", tablefmt="psql"))
+        user_input = input("Enter User ID to Generate Recommendation, F to dismiss: ")
         if user_input == "F":
             return properties
-        target_id = id_list.index(int(user_input))
+        target_id = id_df.index[id_df["user id"] == int(user_input)].tolist()[0]
         top_properties = get_recommendation(users[target_id], properties)
         print(tabulate(top_properties, headers="keys", tablefmt="psql"))
 
