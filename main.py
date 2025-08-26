@@ -1611,7 +1611,13 @@ def cli(properties: list[Property], users: list[User]):
     """
     def create_user():
         # TODO implement try except to catch invalid input for int
-        user_id = int(input("Enter User ID: "))
+        f = True
+        while f:
+            user_id = int(input("Enter User ID: "))
+            if user_id in [user.get_id() for user in users]:
+                print("User ID already exists.")
+            else:
+                f = False
         name = input("Enter User name: ")
         group_size = int(input("Enter Group Size: "))
 
@@ -1636,6 +1642,13 @@ def cli(properties: list[Property], users: list[User]):
     def create_property():
 
         property_id = int(input("Enter Property ID: "))
+        f = True
+        while f:
+            if property_id in [prop.get_id() for prop in properties]:
+                print("Property ID already exists.")
+            else:
+                f = False
+
         location = input("Enter Location: ")
         loc_type = input("Enter Type: ")
         price_per_night = float(input("Enter Price for Night: "))
