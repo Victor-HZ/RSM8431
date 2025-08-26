@@ -9,6 +9,7 @@ import pandas as pd
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk
+from tabulate import tabulate
 
 environments_pool = ["mountain", "lake", "beach", "city", "rural", "suburban", "desert", "forest", "ski", "island"]
 types_pool = ["apartment", "house", "cabin", "villa", "condo", "townhome", "bnb", "chalet", "cottage", "loft"]
@@ -102,6 +103,8 @@ class Property:
                 f"Nightly Price: {self.price_per_night}\n"
                 f"{feature_list}\n"
                 f"{tag_list}\n")
+
+
 
     def get_dict(self):
         """
@@ -783,7 +786,7 @@ def get_recommendation(user: User, properties: list[Property]):
 
 def update_environments_pool(environment: list[str] | str):
     """
-    Update global environments pool with new environments.
+    Update the global environments pool with new environments.
     """
     if isinstance(environment, str):
         environment = [environment.strip().lower()]
@@ -1660,12 +1663,12 @@ def cli(properties: list[Property], users: list[User]):
         return Property(property_id, location, loc_type, price_per_night, features, loc_tags, max_guest, environment)
 
     def view_property(properties: list[Property]):
-        for prop in properties:
-            print(prop)
+        properties_df = pd.DataFrame([prop.get_dict() for prop in properties])
+        print(tabulate(properties_df, headers="keys", tablefmt="psql"))
 
     def view_user(users: list[User]):
-        for user in users:
-            print(user)
+        users_df = pd.DataFrame([user.get_dict() for user in users])
+        print(tabulate(users_df, headers="keys", tablefmt="psql"))
 
     def edit_property(properties: list[Property]):
         id_list = [prop.get_id() for prop in properties]
@@ -1773,13 +1776,8 @@ def cli(properties: list[Property], users: list[User]):
         if user_input == "F":
             return properties
         target_id = id_list.index(int(user_input))
-        top_properties = get_recommendation(users[target_id], properties).to_dict()
-        for i, property_id in enumerate(top_properties["property_id"], start=1):
-            print(f"Number {i}\n"
-                  f"{properties[top_properties['property_id'][property_id]]}\n"
-                  f"Property Score:\t   {round(top_properties['total score'][property_id], 2)}\n"
-                  f"Recommendation:\t   {top_properties['llm_recommendation'][property_id]}\n")
-
+        top_properties = get_recommendation(users[target_id], properties)
+        print(tabulate(top_properties, headers="keys", tablefmt="psql"))
 
         return users
     # Main CLI Loop
