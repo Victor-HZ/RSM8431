@@ -1836,7 +1836,7 @@ def main():
                 print(user_input)
                 cli(properties, users)
             case "2":
-                app = GUI()
+                app = GUI(properties, users)
                 app.run()
             case _:
                 print("Invalid input")
