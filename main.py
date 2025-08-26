@@ -845,10 +845,14 @@ class GUI:
         and displays the main menu.
         """
         self.root = tk.Tk()
-        self.root.title("Simple Airbnb") # change title
+        self.root.title("Simple Airbnb") 
         self.root.geometry("500x500")
-        self.users_list = users
-        self.properties_list = properties
+        try:
+            self.properties_list, self.users_list = load_from_file()
+        except FileNotFoundError as e:
+            messagebox.showerror("Error", f"File not found: {e}")
+        except ValueError as e:
+            messagebox.showerror("Error", f"Error reading JSON: {e}")
 
         self.main_menu()
 
@@ -1180,22 +1184,29 @@ class GUI:
         for widget in self.root.winfo_children():
             widget.destroy()
 
-        self.tree = ttk.Treeview(self.root)
-        self.tree.pack(fill="both", expand=True)
+        table_str = tabulate(selected_property, headers="keys", tablefmt="psql", showindex=False)
 
-        self.tree["columns"] = list(selected_property.columns)
-        self.tree["show"] = "headings"
+        frame = tk.Frame(self.root)
+        frame.pack(fill="both", expand=True)
 
-        for col in selected_property.columns:
-            self.tree.heading(col, text=col)
-            self.tree.column(col, width=100)
+        text_widget = tk.Text(frame, wrap="none", font=("Courier New", 14))
+        text_widget.insert("1.0", table_str)
+        text_widget.config(state="disabled")
+        text_widget.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
-        for _, row in selected_property.iterrows():
-            self.tree.insert("", "end", values=list(row))
+        v_scroll = ttk.Scrollbar(frame, orient="vertical", command=text_widget.yview)
+        v_scroll.grid(row=0, column=1, sticky="ns")
+        text_widget.configure(yscrollcommand=v_scroll.set)
+
+        h_scroll = ttk.Scrollbar(frame, orient="horizontal", command=text_widget.xview)
+        h_scroll.grid(row=1, column=0, sticky="ew")
+        text_widget.configure(xscrollcommand=h_scroll.set)
+
+        frame.rowconfigure(0, weight=1)
+        frame.columnconfigure(0, weight=1)
 
         tk.Button(self.root, text="Main Menu", command=self.main_menu).pack(pady=10)
 
-    # note: can't wrap text in treeview
     def view_all_property(self, properties):
         """
         Display all properties in a scrollable table.
@@ -1206,32 +1217,26 @@ class GUI:
         for widget in self.root.winfo_children():
             widget.destroy()
 
+        table_str = tabulate(properties, headers="keys", tablefmt="psql", showindex=False)
+
         frame = tk.Frame(self.root)
         frame.pack(fill="both", expand=True)
 
-        self.tree = ttk.Treeview(frame)
-        self.tree.grid(row=0, column=0, sticky="nsew")
+        text_widget = tk.Text(frame, wrap="none", font=("Courier New", 14))
+        text_widget.insert("1.0", table_str)
+        text_widget.config(state="disabled")
+        text_widget.grid(row=0, column=0, sticky="nsew")
 
-        v_scroll = ttk.Scrollbar(frame, orient="vertical", command=self.tree.yview)
+        v_scroll = ttk.Scrollbar(frame, orient="vertical", command=text_widget.yview)
         v_scroll.grid(row=0, column=1, sticky="ns")
-        self.tree.configure(yscrollcommand=v_scroll.set)
+        text_widget.configure(yscrollcommand=v_scroll.set)
 
-        h_scroll = ttk.Scrollbar(frame, orient="horizontal", command=self.tree.xview)
+        h_scroll = ttk.Scrollbar(frame, orient="horizontal", command=text_widget.xview)
         h_scroll.grid(row=1, column=0, sticky="ew")
-        self.tree.configure(xscrollcommand=h_scroll.set)
+        text_widget.configure(xscrollcommand=h_scroll.set)
 
         frame.rowconfigure(0, weight=1)
         frame.columnconfigure(0, weight=1)
-
-        self.tree["columns"] = list(properties.columns)
-        self.tree["show"] = "headings"
-
-        for col in properties.columns:
-            self.tree.heading(col, text=col)
-            self.tree.column(col, width=100)
-
-        for _, row in properties.iterrows():
-            self.tree.insert("", "end", values=list(row))
 
         tk.Button(self.root, text="Main Menu", command=self.main_menu).pack(pady=10)
 
@@ -1293,18 +1298,26 @@ class GUI:
         for widget in self.root.winfo_children():
             widget.destroy()
 
-        self.tree = ttk.Treeview(self.root)
-        self.tree.pack(fill="both", expand=True)
+        table_str = tabulate(selected_user, headers="keys", tablefmt="psql", showindex=False)
 
-        self.tree["columns"] = list(selected_user.columns)
-        self.tree["show"] = "headings"
+        frame = tk.Frame(self.root)
+        frame.pack(fill="both", expand=True)
 
-        for col in selected_user.columns:
-            self.tree.heading(col, text=col)
-            self.tree.column(col, width=100)
+        text_widget = tk.Text(frame, wrap="none", font=("Courier New", 14))
+        text_widget.insert("1.0", table_str)
+        text_widget.config(state="disabled")
+        text_widget.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
-        for _, row in selected_user.iterrows():
-            self.tree.insert("", "end", values=list(row))
+        v_scroll = ttk.Scrollbar(frame, orient="vertical", command=text_widget.yview)
+        v_scroll.grid(row=0, column=1, sticky="ns")
+        text_widget.configure(yscrollcommand=v_scroll.set)
+
+        h_scroll = ttk.Scrollbar(frame, orient="horizontal", command=text_widget.xview)
+        h_scroll.grid(row=1, column=0, sticky="ew")
+        text_widget.configure(xscrollcommand=h_scroll.set)
+
+        frame.rowconfigure(0, weight=1)
+        frame.columnconfigure(0, weight=1)
 
         tk.Button(self.root, text="Main Menu", command=self.main_menu).pack(pady=10)
 
@@ -1318,32 +1331,26 @@ class GUI:
         for widget in self.root.winfo_children():
             widget.destroy()
 
+        table_str = tabulate(users, headers="keys", tablefmt="psql", showindex=False)
+
         frame = tk.Frame(self.root)
         frame.pack(fill="both", expand=True)
 
-        self.tree = ttk.Treeview(frame)
-        self.tree.grid(row=0, column=0, sticky="nsew")
+        text_widget = tk.Text(frame, wrap="none", font=("Courier New", 14))
+        text_widget.insert("1.0", table_str)
+        text_widget.config(state="disabled")
+        text_widget.grid(row=0, column=0, sticky="nsew")
 
-        v_scroll = ttk.Scrollbar(frame, orient="vertical", command=self.tree.yview)
+        v_scroll = ttk.Scrollbar(frame, orient="vertical", command=text_widget.yview)
         v_scroll.grid(row=0, column=1, sticky="ns")
-        self.tree.configure(yscrollcommand=v_scroll.set)
+        text_widget.configure(yscrollcommand=v_scroll.set)
 
-        h_scroll = ttk.Scrollbar(frame, orient="horizontal", command=self.tree.xview)
+        h_scroll = ttk.Scrollbar(frame, orient="horizontal", command=text_widget.xview)
         h_scroll.grid(row=1, column=0, sticky="ew")
-        self.tree.configure(xscrollcommand=h_scroll.set)
+        text_widget.configure(xscrollcommand=h_scroll.set)
 
         frame.rowconfigure(0, weight=1)
         frame.columnconfigure(0, weight=1)
-
-        self.tree["columns"] = list(users.columns)
-        self.tree["show"] = "headings"
-
-        for col in users.columns:
-            self.tree.heading(col, text=col)
-            self.tree.column(col, width=100)
-
-        for _, row in users.iterrows():
-            self.tree.insert("", "end", values=list(row))
 
         tk.Button(self.root, text="Main Menu", command=self.main_menu).pack(pady=10)
 
@@ -1516,16 +1523,28 @@ class GUI:
         for widget in self.root.winfo_children():
             widget.destroy()
 
-        self.tree = ttk.Treeview(self.root)
-        self.tree.pack(fill="both", expand=True)
+        users_df = pd.DataFrame([{"user_id": u.user_id, "user_name": u.name} for u in users])
 
-        self.tree["columns"] = ("user_id",)
-        self.tree["show"] = "headings"
-        self.tree.heading("user_id", text="User ID")
-        self.tree.column("user_id", width=100)
+        table_str = tabulate(users_df, headers="keys", tablefmt="psql", showindex=False)
 
-        for i in users:
-            self.tree.insert("", "end", values=(i.user_id,))
+        frame = tk.Frame(self.root)
+        frame.pack(fill="both", expand=True)
+
+        text_widget = tk.Text(frame, wrap="none", font=("Courier New", 12))
+        text_widget.insert("1.0", table_str)
+        text_widget.config(state="disabled")
+        text_widget.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
+
+        v_scroll = ttk.Scrollbar(frame, orient="vertical", command=text_widget.yview)
+        v_scroll.grid(row=0, column=1, sticky="ns")
+        text_widget.configure(yscrollcommand=v_scroll.set)
+
+        h_scroll = ttk.Scrollbar(frame, orient="horizontal", command=text_widget.xview)
+        h_scroll.grid(row=1, column=0, sticky="ew")
+        text_widget.configure(xscrollcommand=h_scroll.set)
+
+        frame.rowconfigure(0, weight=1)
+        frame.columnconfigure(0, weight=1)
 
         self.recommend_id = self.user_entry("Please select a User ID:")
         tk.Button(self.root, text="Enter", command=lambda: self.print_recommendations(users, properties)).pack(pady=10)
@@ -1550,27 +1569,26 @@ class GUI:
             for widget in self.root.winfo_children():
                 widget.destroy()
 
+            top_properties = tabulate(get_recommendation(users[target_id], properties), headers="keys", tablefmt="psql", showindex=False)
+
             frame = tk.Frame(self.root)
             frame.pack(fill="both", expand=True)
 
-            text_widget = tk.Text(frame, wrap="word", width=100, height=20)
-            text_widget.grid(row=0, column=0, sticky="nsew")
+            text_widget = tk.Text(frame, wrap="none", font=("Courier New", 12))
+            text_widget.insert("1.0", top_properties if top_properties.strip() else "No recommendations.")
+            text_widget.config(state="disabled")
+            text_widget.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
 
             v_scroll = ttk.Scrollbar(frame, orient="vertical", command=text_widget.yview)
             v_scroll.grid(row=0, column=1, sticky="ns")
             text_widget.configure(yscrollcommand=v_scroll.set)
 
+            h_scroll = ttk.Scrollbar(frame, orient="horizontal", command=text_widget.xview)
+            h_scroll.grid(row=1, column=0, sticky="ew")
+            text_widget.configure(xscrollcommand=h_scroll.set)
+
             frame.rowconfigure(0, weight=1)
             frame.columnconfigure(0, weight=1)
-
-            top_properties = get_recommendation(users[target_id], properties).to_dict()
-
-            for i, property_id in enumerate(top_properties["property_id"], start=1):
-                line = (f"Number {i}\n"
-                        f"{properties[top_properties['property_id'][property_id]]}\n"
-                        f"Property Score:\t   {round(top_properties['total score'][property_id], 2)}\n"
-                        f"Recommendation:\t   {top_properties['llm_recommendation'][property_id]}\n")
-                text_widget.insert(tk.END, line)
 
             tk.Button(self.root, text="Main Menu", command=self.main_menu).pack(pady=10)
 
