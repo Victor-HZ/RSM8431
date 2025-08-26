@@ -230,9 +230,3 @@ Each score is normalized on a scale of 1-10, and a weighted average of the five 
 2. Ranking and Output
 * Sort by score
 * Print top 5 properties 
-
----
-
-## License
-
-MIT (recommend adding a LICENSE file at repo root)
