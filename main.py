@@ -177,12 +177,7 @@ class Property:
         if isinstance(tags, str):
             self.tags = [tags.strip().lower()]
         self.tags = [tag.strip().lower() for tag in tags]
-        wrong_type = [tag for tag in tags if not isinstance(tag, str)]
-        tags_pool.extend(wrong_type)
-        if wrong_type:
-            raise ValueError("Tags must be a list of strings.")
-        tags_pool.extend([tag for tag in tags if tag not in tags_pool])
-
+        update_tags_pool(self.tags)
 
     def update_max_guests(self, max_guests: int):
         """
@@ -192,7 +187,7 @@ class Property:
             max_guests (int): New maximum guest count.
         """
         self.max_guests = max_guests
-        if  isinstance(max_guests, int):
+        if  not isinstance(max_guests, int):
             raise ValueError("Maximum guest count must be an integer.")
         if max_guests < 1:
             raise ValueError("Maximum guest count must be at least 1.")
@@ -542,8 +537,8 @@ class User:
 
         try:
             parsed = json.loads(cleaned)
-        except json.JSONDecodeError:
-            raise ValueError("LLM output is not valid JSON")
+        except Exception as e:
+            parsed = pd.DataFrame(columns=["property_id", "score", "recommendation"])
 
         return pd.DataFrame(parsed)
 
@@ -579,8 +574,11 @@ class User:
             properties_df["environment score"] = np.clip((10 * properties_df[penv].astype(int) + properties_df["environment score"]), 0, 10)
 
         # Feature Abundancy
-
-        properties_df["feature score"] = sum(properties_df["features_" + token] for token in features_pool)
+        token_pool = []
+        for feature in features_pool:
+            if feature in properties_df.columns:
+                token_pool.append(feature)
+        properties_df["feature score"] = sum(properties_df["features_" + token] for token in token_pool)
 
         # LLM Score
         llm_score_df = self._llm_scoring(properties).add_prefix("llm_").rename(columns={"llm_property_id": "property_id"})
@@ -620,9 +618,9 @@ def load_from_file() -> tuple[list[Property], list[User]]:
                                         prop['features'], prop['tags'], prop['max_guests'], prop['environment']) for prop in temp_properties]
         else:
             property_result = [
-                Property(temp_properties['property_id'], temp_properties['location'], temp_properties['property_type'],
-                         temp_properties['price_per_night'], temp_properties['features'], temp_properties['tags'],
-                         temp_properties['max_guests'], temp_properties['environment']) for temp_properties in temp_properties]
+                Property(temp_property['property_id'], temp_property['location'], temp_property['property_type'],
+                         temp_property['price_per_night'], temp_property['features'], temp_property['tags'],
+                         temp_property['max_guests'], temp_property['environment']) for temp_property in temp_properties]
     except Exception as e:
         raise ValueError(f"Error loading properties from file: {e}")
 
@@ -1730,7 +1728,7 @@ def cli(properties: list[Property], users: list[User]):
               f"1. User ID     \t 2. Name\n"
               f"3. Group Size  \t 4. Budget\n"
               f"5. Travel Date \t 6. Preferred Environment\n"
-              f"7. Dismiss\n")
+              f"7. Delete      \t 8. Dismiss\n")
         user_input = input("Enter your choice, F to dismiss: ")
         match user_input:
             case "1":
@@ -1762,6 +1760,10 @@ def cli(properties: list[Property], users: list[User]):
                         preferred_environment.append(user_input)
                 users[target_id].update_preferred_environment(preferred_environment)
             case "7":
+                print(f"User {users[target_id].get_id()} will be deleted.")
+                users.pop(target_id)
+                return users
+            case "8":
                 return users
         return users
     def get_top(users: list[User], properties: list[Property]):
