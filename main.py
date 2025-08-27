@@ -338,7 +338,7 @@ class User:
         if isinstance(preferred_environment, str):
             self.preferred_environment = [preferred_environment.strip().lower()]
         else:
-            self.preferred_environment = preferred_environment
+            self.preferred_environment = [env.strip().lower() for env in preferred_environment]
         environments_pool.extend([env for env in self.preferred_environment if env not in environments_pool])
         self.budget_range = min(budget_range), max(budget_range)
         self.travel_date = travel_date
